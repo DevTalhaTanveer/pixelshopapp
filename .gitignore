@@ -1,0 +1,5 @@
+pixelshop-env
+note.txt
+*.pyc
+\__pycache__/
+
