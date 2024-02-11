@@ -8,7 +8,7 @@ import base64
 import cv2
 from ..data import temperature_chart
 from skimage import exposure
-from cv2 import dnn_superres
+
 
 global edited_image, to_save, real_image, width_img  # Global variables to hold image data
 global hist_r, hist_g, hist_b, adjust_r_curve, adjust_g_curve, adjust_b_curve
