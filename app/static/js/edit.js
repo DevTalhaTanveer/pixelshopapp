@@ -49,12 +49,22 @@ const greenhueLabel = document
   .querySelector(".value");
 const green_saturation_1 = document.querySelector("#green-saturation-1");
 const green_saturation_2 = document.querySelector("#green-saturation-2");
-const green_saturation_1_label = document
+let green_saturation_1_label = document
   .querySelector("#green-saturation-1-label")
   .querySelector(".value");
-const green_saturation_2_label = document
+let green_saturation_2_label = document
   .querySelector("#green-saturation-2-label")
   .querySelector(".value");
+const green_saturation_1_input_number=document.querySelector("#green-input-1")
+const green_saturation_2_input_number=document.querySelector("#green-input-2")
+const blue_saturation_1_input_number=document.querySelector("#blue-input-1")
+const blue_saturation_2_input_number=document.querySelector("#blue-input-2")
+const red_saturation_1_input_number=document.querySelector("#red-input-1")
+const red_saturation_2_input_number=document.querySelector("#red-input-2")
+
+// Now we add the logic of input feilds 
+
+
 const bluehue = document.querySelector("#blue-hue");
 const bluehueLabel = document
   .querySelector("#blue-hue-label")
@@ -111,6 +121,9 @@ let upscalebtn=document.querySelector("#edit > button")
 console.log(upscalebtn);
 // end decleration
 document.querySelector("#headingFour > h5")
+
+
+
 
 /**OTHERS */
 brightnessInput.addEventListener("change", function (e) {
@@ -597,11 +610,91 @@ greenhue.addEventListener("change", function (e) {
     .catch((err) => console.error(err));
 });
 
+green_saturation_1_input_number.addEventListener('input',(e)=>{
+    const inputValue = parseInt(e.target.value);
+    const maxValue = parseInt(e.target.max);
+    const minValue = parseInt(e.target.min);
+
+    if (isNaN(inputValue) || inputValue > maxValue || inputValue < minValue) {
+        green_saturation_1_input_number.value = isNaN(inputValue) ? '' : (inputValue > maxValue ? maxValue : minValue);
+    }
+  loader.style.display = "block";
+  const value = e.target.value;
+  green_saturation_1_label.innerHTML=value
+  green_saturation_1.value=value
+  console.log(green_saturation_1_label.innerHTML);
+  let response = originImage;
+  let contrast = Number(contrastLabel.innerHTML);
+  let brightness = Number(brightnessLabel.innerHTML);
+  let sharpness = Number(sharpnessLabel.innerHTML);
+  let saturation = Number(saturationLabel.innerHTML);
+  let exposure = Number(exposureLabel.innerHTML);
+  let filter = Number(filterLabel.innerHTML);
+  let green_hue = Number(greenhueLabel.innerHTML);
+  let green_saturation_2 = Number(green_saturation_2_label.innerHTML);
+  let red_hue = Number(redhueLabel.innerHTML);
+  let red_saturation_1 = Number(red_saturation_1_label.innerHTML);
+  let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
+  let bluehue = Number(bluehueLabel.innerHTML);
+  let blue_saturation_1 = Number(blue_saturation_1_label.innerHTML);
+  let blue_saturation_2 = Number(blue_saturation_2_label.innerHTML);
+
+  if (
+    contrast > 1 ||
+    brightness > 1 ||
+    sharpness > 1 ||
+    saturation > 1 ||
+    exposure > 1 ||
+    filter < 1 ||
+    green_hue > 0 ||
+    green_saturation_2 < 255 ||
+    red_hue > 0 ||
+    red_saturation_1 > 0 ||
+    red_saturation_2 < 255 ||
+    bluehue > 0 ||
+    blue_saturation_1 > 0 ||
+    blue_saturation_2 < 255 ||
+    contrast < 1 ||
+    brightness < 1 ||
+    sharpness < 1 ||
+    saturation < 1 ||
+    exposure < 1
+  ) {
+    response = previewImage.src;
+    response = response.split("base64,")[1];
+  }
+
+  let factorial = Number(value);
+
+  axios
+    .post(
+      "/slider1/green",
+      {
+        response,
+        factorial,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((res) => {
+      const image = res.data.res;
+      let result = image.split("'")[1];
+      previewImage.setAttribute("src", "data:image/png;base64," + result);
+
+      loader.style.display = "none";
+    })
+    .catch((err) => console.error(err));
+})
+
 green_saturation_1.addEventListener("change", function (e) {
   loader.style.display = "block";
   const value = e.target.value;
   green_saturation_1_label.innerHTML = value;
   console.log(value);
+  green_saturation_1_input_number.value=value
   let response = originImage;
   let contrast = Number(contrastLabel.innerHTML);
   let brightness = Number(brightnessLabel.innerHTML);
@@ -667,12 +760,90 @@ green_saturation_1.addEventListener("change", function (e) {
     })
     .catch((err) => console.error(err));
 });
+green_saturation_2_input_number.addEventListener('input',(e)=>{
+  const inputValue = parseInt(e.target.value);
+  const maxValue = parseInt(e.target.max);
+  const minValue = parseInt(e.target.min);
 
+  if (isNaN(inputValue) || inputValue > maxValue || inputValue < minValue) {
+      green_saturation_2_input_number.value = isNaN(inputValue) ? '' : (inputValue > maxValue ? maxValue : minValue);
+  }
+  loader.style.display = "block";
+  const value = e.target.value;
+  green_saturation_2_label.innerHTML = value;
+  green_saturation_2.value=value
+  console.log(value);
+  let response = originImage;
+  let contrast = Number(contrastLabel.innerHTML);
+  let brightness = Number(brightnessLabel.innerHTML);
+  let sharpness = Number(sharpnessLabel.innerHTML);
+  let saturation = Number(saturationLabel.innerHTML);
+  let exposure = Number(exposureLabel.innerHTML);
+  let filter = Number(filterLabel.innerHTML);
+  let green_hue = Number(greenhueLabel.innerHTML);
+  let green_saturation_1 = Number(green_saturation_1_label.innerHTML);
+  let red_hue = Number(redhueLabel.innerHTML);
+  let red_saturation_1 = Number(red_saturation_1_label.innerHTML);
+  let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
+  let bluehue = Number(bluehueLabel.innerHTML);
+  let blue_saturation_1 = Number(blue_saturation_1_label.innerHTML);
+  let blue_saturation_2 = Number(blue_saturation_2_label.innerHTML);
+
+  if (
+    contrast > 1 ||
+    brightness > 1 ||
+    sharpness > 1 ||
+    saturation > 1 ||
+    exposure > 1 ||
+    filter < 1 ||
+    green_hue > 0 ||
+    green_saturation_1 > 0 ||
+    red_hue > 0 ||
+    red_saturation_1 > 0 ||
+    red_saturation_2 < 255 ||
+    bluehue > 0 ||
+    blue_saturation_1 > 0 ||
+    blue_saturation_2 < 255 ||
+    contrast < 1 ||
+    brightness < 1 ||
+    sharpness < 1 ||
+    saturation < 1 ||
+    exposure < 1
+  ) {
+    response = previewImage.src;
+    response = response.split("base64,")[1];
+  }
+
+  let factorial = Number(value);
+
+  axios
+    .post(
+      "/slider2/green",
+      {
+        response,
+        factorial,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((res) => {
+      const image = res.data.res;
+      let result = image.split("'")[1];
+      previewImage.setAttribute("src", "data:image/png;base64," + result);
+
+      loader.style.display = "none";
+    })
+    .catch((err) => console.error(err));
+})
 green_saturation_2.addEventListener("change", function (e) {
   loader.style.display = "block";
   const value = e.target.value;
   green_saturation_2_label.innerHTML = value;
   console.log(value);
+  green_saturation_2_input_number.value=value
   let response = originImage;
   let contrast = Number(contrastLabel.innerHTML);
   let brightness = Number(brightnessLabel.innerHTML);
@@ -808,11 +979,88 @@ bluehue.addEventListener("change", function (e) {
     .catch((err) => console.error(err));
 });
 
+blue_saturation_1_input_number.addEventListener('input',(e)=>{
+  const inputValue = parseInt(e.target.value);
+  const maxValue = parseInt(e.target.max);
+  const minValue = parseInt(e.target.min);
+
+  if (isNaN(inputValue) || inputValue > maxValue || inputValue < minValue) {
+      blue_saturation_1_input_number.value = isNaN(inputValue) ? '' : (inputValue > maxValue ? maxValue : minValue);
+  }
+  loader.style.display = "block";
+  const value = e.target.value;
+  blue_saturation_1_label.innerHTML = value;
+  blue_saturation_1.value=value
+  let response = originImage;
+  let contrast = Number(contrastLabel.innerHTML);
+  let brightness = Number(brightnessLabel.innerHTML);
+  let sharpness = Number(sharpnessLabel.innerHTML);
+  let exposure = Number(exposureLabel.innerHTML);
+  let filter = Number(filterLabel.innerHTML);
+  let blue_hue = Number(bluehueLabel.innerHTML);
+  let blue_saturation_2 = Number(blue_saturation_2_label.innerHTML);
+  let green_hue = Number(greenhueLabel.innerHTML);
+  let green_saturation_1 = Number(green_saturation_1_label.innerHTML);
+  let green_saturation_2 = Number(green_saturation_2_label.innerHTML);
+  let red_hue = Number(redhueLabel.innerHTML);
+  let red_saturation_1 = Number(red_saturation_1_label.innerHTML);
+  let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
+
+  if (
+    contrast > 1 ||
+    brightness > 1 ||
+    sharpness > 1 ||
+    exposure > 1 ||
+    filter < 1 ||
+    blue_hue > 0 ||
+    blue_saturation_2 < 255 ||
+    green_hue > 0 ||
+    green_saturation_1 > 0 ||
+    green_saturation_2 < 255 ||
+    red_hue > 0 ||
+    red_saturation_1 > 0 ||
+    red_saturation_2 < 255 ||
+    contrast < 1 ||
+    brightness < 1 ||
+    sharpness < 1 ||
+    exposure < 1
+  ) {
+    response = previewImage.src;
+    response = response.split("base64,")[1];
+  }
+
+  let factorial = Number(value);
+
+  axios
+    .post(
+      "/slider1/blue",
+      {
+        response,
+        factorial,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((res) => {
+      const image = res.data.res;
+      let result = image.split("'")[1];
+      previewImage.setAttribute("src", "data:image/png;base64," + result);
+
+      loader.style.display = "none";
+    })
+    .catch((err) => console.error(err));
+
+})
+
 blue_saturation_1.addEventListener("change", function (e) {
   loader.style.display = "block";
   const value = e.target.value;
   blue_saturation_1_label.innerHTML = value;
   console.log(value);
+  blue_saturation_1_input_number.value=value
   let response = originImage;
   let contrast = Number(contrastLabel.innerHTML);
   let brightness = Number(brightnessLabel.innerHTML);
@@ -876,12 +1124,87 @@ blue_saturation_1.addEventListener("change", function (e) {
     .catch((err) => console.error(err));
 });
 
+blue_saturation_2_input_number.addEventListener('input',(e)=>{
+  const inputValue = parseInt(e.target.value);
+  const maxValue = parseInt(e.target.max);
+  const minValue = parseInt(e.target.min);
+
+  if (isNaN(inputValue) || inputValue > maxValue || inputValue < minValue) {
+      blue_saturation_2_input_number.value = isNaN(inputValue) ? '' : (inputValue > maxValue ? maxValue : minValue);
+  }
+  loader.style.display = "block";
+  const value = e.target.value;
+  blue_saturation_2_label.innerHTML = value;
+  blue_saturation_2.value=value
+  let response = originImage;
+  let contrast = Number(contrastLabel.innerHTML);
+  let brightness = Number(brightnessLabel.innerHTML);
+  let sharpness = Number(sharpnessLabel.innerHTML);
+  let exposure = Number(exposureLabel.innerHTML);
+  let filter = Number(filterLabel.innerHTML);
+  let blue_hue = Number(bluehueLabel.innerHTML);
+  let blue_saturation_1 = Number(blue_saturation_1_label.innerHTML);
+  let green_hue = Number(greenhueLabel.innerHTML);
+  let green_saturation_1 = Number(green_saturation_1_label.innerHTML);
+  let green_saturation_2 = Number(green_saturation_2_label.innerHTML);
+  let red_hue = Number(redhueLabel.innerHTML);
+  let red_saturation_1 = Number(red_saturation_1_label.innerHTML);
+  let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
+
+  if (
+    contrast > 1 ||
+    brightness > 1 ||
+    sharpness > 1 ||
+    exposure > 1 ||
+    filter < 1 ||
+    blue_hue > 0 ||
+    blue_saturation_1 > 0 ||
+    green_hue > 0 ||
+    green_saturation_1 > 0 ||
+    green_saturation_2 < 255 ||
+    red_hue > 0 ||
+    red_saturation_1 > 0 ||
+    red_saturation_2 < 255 ||
+    contrast < 1 ||
+    brightness < 1 ||
+    sharpness < 1 ||
+    exposure < 1
+  ) {
+    response = previewImage.src;
+    response = response.split("base64,")[1];
+  }
+
+  let factorial = Number(value);
+
+  axios
+    .post(
+      "/slider2/blue",
+      {
+        response,
+        factorial,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((res) => {
+      const image = res.data.res;
+      let result = image.split("'")[1];
+      previewImage.setAttribute("src", "data:image/png;base64," + result);
+
+      loader.style.display = "none";
+    })
+    .catch((err) => console.error(err));
+})
 blue_saturation_2.addEventListener("change", function (e) {
   loader.style.display = "block";
   const value = e.target.value;
   blue_saturation_2_label.innerHTML = value;
   console.log(value);
   let response = originImage;
+  blue_saturation_2_input_number.value=value
   let contrast = Number(contrastLabel.innerHTML);
   let brightness = Number(brightnessLabel.innerHTML);
   let sharpness = Number(sharpnessLabel.innerHTML);
@@ -1013,11 +1336,92 @@ redhue.addEventListener("change", function (e) {
     .catch((err) => console.error(err));
 });
 
+red_saturation_1_input_number.addEventListener('input',(e)=>{
+  const inputValue = parseInt(e.target.value);
+  const maxValue = parseInt(e.target.max);
+  const minValue = parseInt(e.target.min);
+
+  if (isNaN(inputValue) || inputValue > maxValue || inputValue < minValue) {
+      red_saturation_1_input_number.value = isNaN(inputValue) ? '' : (inputValue > maxValue ? maxValue : minValue);
+  }
+  loader.style.display = "block";
+  const value = e.target.value;
+  red_saturation_1_label.innerHTML = value;
+  red_saturation_1.value=value
+  console.log(value);
+  let response = originImage;
+  let contrast = Number(contrastLabel.innerHTML);
+  let brightness = Number(brightnessLabel.innerHTML);
+  let sharpness = Number(sharpnessLabel.innerHTML);
+
+  let exposure = Number(exposureLabel.innerHTML);
+  let filter = Number(filterLabel.innerHTML);
+  let red_hue = Number(redhueLabel.innerHTML);
+  let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
+  let bluehue = Number(bluehueLabel.innerHTML);
+  let blue_saturation_1 = Number(blue_saturation_1_label.innerHTML);
+  let blue_saturation_2 = Number(blue_saturation_2_label.innerHTML);
+  let green_hue = Number(greenhueLabel.innerHTML);
+  let green_saturation_1 = Number(green_saturation_1_label.innerHTML);
+  let green_saturation_2 = Number(green_saturation_2_label.innerHTML);
+
+  if (
+    contrast > 1 ||
+    brightness > 1 ||
+    sharpness > 1 ||
+    exposure > 1 ||
+    filter < 1 ||
+    greenChanged ||
+    blueChanged ||
+    red_hue > 0 ||
+    red_saturation_2 < 255 ||
+    bluehue > 0 ||
+    blue_saturation_1 > 0 ||
+    blue_saturation_2 < 255 ||
+    green_hue > 0 ||
+    green_saturation_1 > 0 ||
+    green_saturation_2 < 255 ||
+    contrast < 1 ||
+    brightness < 1 ||
+    sharpness < 1 ||
+    exposure < 1
+  ) {
+    response = previewImage.src;
+    response = response.split("base64,")[1];
+  }
+
+  let factorial = Number(value);
+
+  axios
+    .post(
+      "/slider1/red",
+      {
+        response,
+        factorial,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((res) => {
+      const image = res.data.res;
+      let result = image.split("'")[1];
+      previewImage.setAttribute("src", "data:image/png;base64," + result);
+
+      loader.style.display = "none";
+    })
+    .catch((err) => console.error(err));
+
+})
+
 red_saturation_1.addEventListener("change", function (e) {
   loader.style.display = "block";
   const value = e.target.value;
   red_saturation_1_label.innerHTML = value;
   console.log(value);
+  red_saturation_1_input_number.value=value;
   let response = originImage;
   let contrast = Number(contrastLabel.innerHTML);
   let brightness = Number(brightnessLabel.innerHTML);
@@ -1084,10 +1488,18 @@ red_saturation_1.addEventListener("change", function (e) {
     .catch((err) => console.error(err));
 });
 
-red_saturation_2.addEventListener("change", function (e) {
+red_saturation_2_input_number.addEventListener('input',(e)=>{
+  const inputValue = parseInt(e.target.value);
+  const maxValue = parseInt(e.target.max);
+  const minValue = parseInt(e.target.min);
+
+  if (isNaN(inputValue) || inputValue > maxValue || inputValue < minValue) {
+      red_saturation_2_input_number.value = isNaN(inputValue) ? '' : (inputValue > maxValue ? maxValue : minValue);
+  }
   loader.style.display = "block";
   const value = e.target.value;
   red_saturation_2_label.innerHTML = value;
+  red_saturation_2.value=value
   console.log(value);
   let response = originImage;
   let contrast = Number(contrastLabel.innerHTML);
@@ -1153,9 +1565,85 @@ red_saturation_2.addEventListener("change", function (e) {
       loader.style.display = "none";
     })
     .catch((err) => console.error(err));
+})
+red_saturation_2.addEventListener("change", function (e) {
+  loader.style.display = "block";
+  const value = e.target.value;
+  red_saturation_2_label.innerHTML = value;
+  console.log(value);
+  red_saturation_2_input_number.value=value;
+  let response = originImage;
+  let contrast = Number(contrastLabel.innerHTML);
+  let brightness = Number(brightnessLabel.innerHTML);
+  let sharpness = Number(sharpnessLabel.innerHTML);
+
+  let exposure = Number(exposureLabel.innerHTML);
+  let filter = Number(filterLabel.innerHTML);
+  let red_hue = Number(redhueLabel.innerHTML);
+  let red_saturation_1 = Number(red_saturation_1_label.innerHTML);
+  let bluehue = Number(bluehueLabel.innerHTML);
+  let blue_saturation_1 = Number(blue_saturation_1_label.innerHTML);
+  let blue_saturation_2 = Number(blue_saturation_2_label.innerHTML);
+  let green_hue = Number(greenhueLabel.innerHTML);
+  let green_saturation_1 = Number(green_saturation_1_label.innerHTML);
+  let green_saturation_2 = Number(green_saturation_2_label.innerHTML);
+
+  if (
+    contrast > 1 ||
+    brightness > 1 ||
+    sharpness > 1 ||
+    exposure > 1 ||
+    filter < 1 ||
+    greenChanged ||
+    blueChanged ||
+    red_hue > 0 ||
+    red_saturation_1 > 0 ||
+    blue_saturation_1 > 0 ||
+    blue_saturation_2 < 255 ||
+    green_hue > 0 ||
+    green_saturation_1 > 0 ||
+    green_saturation_2 < 255 ||
+    bluehue > 0 ||
+    contrast < 1 ||
+    brightness < 1 ||
+    sharpness < 1 ||
+    exposure < 1
+  ) {
+    response = previewImage.src;
+    response = response.split("base64,")[1];
+  }
+
+  let factorial = Number(value);
+
+  axios
+    .post(
+      "/slider2/red",
+      {
+        response,
+        factorial,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((res) => {
+      const image = res.data.res;
+      let result = image.split("'")[1];
+      previewImage.setAttribute("src", "data:image/png;base64," + result);
+
+      loader.style.display = "none";
+    })
+    .catch((err) => console.error(err));
 });
+let chart;
 
 greenInput.addEventListener("click", async function (e) {
+
+  if (chart) {
+    chart.destroy();
+  }
   let histg = [];
   let Sweat_Range = [];
   loader.style.display = "block";
@@ -1226,11 +1714,13 @@ greenInput.addEventListener("click", async function (e) {
       green_saturation_2.value = res.data.entry_2b;
       green_saturation_1_label.innerHTML = res.data.entry_2a;
       green_saturation_2_label.innerHTML = res.data.entry_2b;
+      green_saturation_1_input_number.value=res.data.entry_2a
+      green_saturation_2_input_number.value=res.data.entry_2b
     })
     .catch((err) => console.error(err));
   const graph = document.getElementById("histogram");
   graph.height = 400;
-  const chart = new Chart(ctx_g, {
+  chart = new Chart(ctx_g, {
     type: "bar",
 
     data: {
@@ -1264,12 +1754,14 @@ greenInput.addEventListener("click", async function (e) {
 
   chart.update();
 });
-
+let chartblue;
 blueInput.addEventListener("click", async function (e) {
   let histb = [];
   let Sweat_Range = [];
   loader.style.display = "block";
-
+  if (chartblue) {
+    chartblue.destroy();
+  }
   let contrast = Number(contrastLabel.innerHTML);
   let brightness = Number(brightnessLabel.innerHTML);
   let sharpness = Number(sharpnessLabel.innerHTML);
@@ -1333,6 +1825,8 @@ blueInput.addEventListener("click", async function (e) {
       blue_saturation_2.value = res.data.entry_3b;
       blue_saturation_1_label.innerHTML = res.data.entry_3a;
       blue_saturation_2_label.innerHTML = res.data.entry_3b;
+      blue_saturation_1_input_number.value=res.data.entry_3a
+      blue_saturation_2_input_number.value=res.data.entry_3b
     })
     .catch((err) => console.error(err));
 
@@ -1340,7 +1834,7 @@ blueInput.addEventListener("click", async function (e) {
   const graph = document.getElementById("histogram_b");
   graph.height = 400;
 
-  const chart = new Chart(ctx_b, {
+  chartblue = new Chart(ctx_b, {
     type: "bar",
     data: {
       // 0 to 255
@@ -1355,7 +1849,7 @@ blueInput.addEventListener("click", async function (e) {
     },
   });
   Sweat_Range.map((range, key) => {
-    chart.data.datasets.push({
+    chartblue.data.datasets.push({
       type: "line",
       label: "sweet range",
       data: [
@@ -1371,13 +1865,16 @@ blueInput.addEventListener("click", async function (e) {
     });
   });
 
-  chart.update();
+  chartblue.update();
 });
-
+let chartred;
 redInput.addEventListener("click", async function (e) {
   let histr = [];
   let Sweat_Range = [];
   loader.style.display = "block";
+  if(chartred){
+    chartred.destroy()
+  }
   let contrast = Number(contrastLabel.innerHTML);
   let brightness = Number(brightnessLabel.innerHTML);
   let sharpness = Number(sharpnessLabel.innerHTML);
@@ -1444,6 +1941,8 @@ redInput.addEventListener("click", async function (e) {
       Sweat_Range = res.data.Sweat_Range;
       red_saturation_1_label.innerHTML = res.data.entry_1a;
       red_saturation_2_label.innerHTML = res.data.entry_1b;
+      red_saturation_1_input_number.value=res.data.entry_1a;
+      red_saturation_2_input_number.value=res.data.entry_1b
       console.log(red_saturation_1);
     })
     .catch((err) => console.error(err));
@@ -1452,7 +1951,7 @@ redInput.addEventListener("click", async function (e) {
   console.log(histr);
   const graph = document.getElementById("histogram_r");
   graph.height = 400;
-  const chart = new Chart(ctx_r, {
+   chartred= new Chart(ctx_r, {
     type: "bar",
     data: {
       // 0 to 255
@@ -1467,7 +1966,7 @@ redInput.addEventListener("click", async function (e) {
     },
   });
   Sweat_Range.map((range, key) => {
-    chart.data.datasets.push({
+    chartred.data.datasets.push({
       type: "line",
 
       label: "sweet range",
@@ -1484,7 +1983,7 @@ redInput.addEventListener("click", async function (e) {
     });
   });
 
-  chart.update();
+  chartred.update();
 });
 upscalebtn.addEventListener('click',async function (e){
   loader.style.display = "block";

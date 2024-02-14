@@ -179,6 +179,7 @@ def adjust_filter():
 def createImageHistogram(image):
     # Split the image into R, G, B channels
     b, g, r = cv2.split(image)
+    print(f'the blue is {b} and green is {g} and red is {r}')
 
     # Create histograms for the adjusted channels
     hist_r = cv2.calcHist([r], [0], None, [256], [0, 256])
@@ -227,6 +228,7 @@ def autoAdjust(hist,ind ,t=True):
     
     f = 0
     b = 0
+    
     if t:
         for i_ in range(2):
             for i in range(f, len(hist) - 1):
@@ -243,6 +245,7 @@ def autoAdjust(hist,ind ,t=True):
 
             b += 1
             f += 1
+            
 
     b = 255 - b
     print("f, b", f, b)
@@ -492,6 +495,7 @@ def applyModel(I, idx = 0):
     global slider_1a, slider_1b, slider_2a, slider_2b, slider_3a, slider_3b
     global sweat_ranges 
     global adjust_r_curve, adjust_g_curve, adjust_b_curve
+    
     try:
         # Apply the correction model
         h, w = I.shape[:2]
@@ -620,6 +624,7 @@ def slider1_green():
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
 
+   
     adjust_r_curve = adjust_channel_curve(r,
                                             np.array([[0, 0], [255, 255]], dtype=np.uint8))
     adjust_g_curve = adjust_channel_curve(g,
