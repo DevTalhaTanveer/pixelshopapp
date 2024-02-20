@@ -1120,8 +1120,8 @@ def adjust_hue_green():
         output=blend_with_blue(im,hueblue)
     if huered>0:
         output=blend_with_red(im,huered)
-    if huefactor==0 and huefactor==0.1:
-        if(factorslider1green>0 and factorslider1green<=130):
+    if huefactor==0 or huefactor==0.1:
+        if(factorslider1green>0 and factorslider1green<130):
             silder1image=addslider1green(output,factorslider1green)
             output=Image.fromarray(silder1image)
         if(factorslider2green>0 and factorslider2green<=255):
