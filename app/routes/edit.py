@@ -10,13 +10,24 @@ from ..data import temperature_chart
 from skimage import exposure
 
 
-global edited_image, to_save, real_image, width_img  # Global variables to hold image data
+global edited_image, to_save, real_image, width_img,real_image_user  # Global variables to hold image data
 global hist_r, hist_g, hist_b, adjust_r_curve, adjust_g_curve, adjust_b_curve
 global entry_1a, entry_1b, entry_2a, entry_2b, entry_3a, entry_3b
 global slider_1a, slider_1b, slider_2a, slider_2b, slider_3a, slider_3b
 global sweat_ranges 
+flaghuegreen=0
+huefactor=0
+flagslider1green=0
+factorslider1green=0
+flagslider2green=0
+factorslider2green=0
+hueblue=0
+facotrslider1blue=0
+factorslider2blue=0
+factorsliderred1=0
+factorssliderred2=0
+huered=0
 sweat_ranges = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
-# sweat_ranges = [[0, 255, 0, 255], [0, 255, 0, 255], [0, 255, 0, 255],[0,255,0,255]]
 model_filename = "ESPCN_x4.pb"
 model_path = os.path.join(os.path.dirname(__file__), model_filename)
 
@@ -29,6 +40,14 @@ model_path = os.path.join(os.path.dirname(__file__), model_filename)
     
 
 edit_route = Blueprint("edit_route", __name__, template_folder='templates')
+
+@edit_route.route('/upload/originalimage',methods=['POST'])
+def uploadimage():
+    global edited_image, to_save, real_image, width_img,real_image_user
+    real_image_user=request.json['response']
+
+    return jsonify({"res": 'done'})
+
 
 @edit_route.route('/resize', methods=['POST'])
 def resize():
@@ -179,7 +198,7 @@ def adjust_filter():
 def createImageHistogram(image):
     # Split the image into R, G, B channels
     b, g, r = cv2.split(image)
-    print(f'the blue is {b} and green is {g} and red is {r}')
+   
 
     # Create histograms for the adjusted channels
     hist_r = cv2.calcHist([r], [0], None, [256], [0, 256])
@@ -197,30 +216,6 @@ def createImageHistogram(image):
 
     return hist_r, hist_g, hist_b
 
-# def calculate_sweat_ranges(hist, num_ranges=4):
-#   """
-#   This function calculates four sweat ranges based on the given histogram.
-
-#   Args:
-#     hist: A list of integers representing the histogram values.
-#     num_ranges: The number of sweat ranges to calculate (default: 4).
-
-#   Returns:
-#     A list of lists, where each sublist represents a sweat range.
-#   """
-
-#   sweat_ranges = []
-
-#   # Calculate percentiles to divide the data into equal-sized ranges
-#   percentiles = np.percentile(hist, np.linspace(0, 100, num_ranges + 1))
-
-#   # Define sweat ranges based on percentiles
-#   for i in range(1, num_ranges + 1):
-#     min_val = percentiles[i - 1]
-#     max_val = percentiles[i]
-#     sweat_ranges.append([min_val, max_val, min_val, max_val])
-
-#   return sweat_ranges
 def autoAdjust(hist,ind ,t=True):
     global entry_1a, entry_1b, entry_2a, entry_2b, entry_3a, entry_3b
     global slider_1a, slider_1b, slider_2a, slider_2b, slider_3a, slider_3b
@@ -506,8 +501,6 @@ def applyModel(I, idx = 0):
         else:
             I = ResizeWithAspectRatio(I, width=1024)
 
-        real_image = I
-
         hist_r, hist_g, hist_b = createImageHistogram(I)
         b, g, r = cv2.split(I)
         if idx == 0:
@@ -556,96 +549,267 @@ def applyModel(I, idx = 0):
 
 @edit_route.route('/color/red', methods=['POST'])
 def adjust_green_channel():
-    global edited_image, real_image, hist_r, hist_g, hist_b, width_img
+    global edited_image, real_image, hist_r, hist_g, hist_b, width_img,huered,hueblue,huefactor
     response = request.json['response']
-    # entry_1a = request.json['entry_1a']
-    # entry_1b = request.json['entry_1b']
-    # slider_1a = request.json['slider_1a']
-    # slider_1b = request.json['slider_1b']
-    # sweat_ranges = request.json['sweat_ranges']
+  
     print(sweat_ranges)
-    nparr = np.frombuffer(base64.b64decode(response), np.uint8)
+    nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     
     applyModel(img)
+    merged_image = Image.fromarray(edited_image)
+
+    if(huefactor>0):
+        merged_image=blend_with_green(merged_image,huefactor)
+    if hueblue>0:
+        merged_image=blend_with_blue(merged_image,huefactor)
+    if huered>0:
+        merged_image=blend_with_red(merged_image,huered)
+    if facotrslider1blue <130 and facotrslider1blue>0:
+        edit_imageafter=addsliderblue1(merged_image,facotrslider1blue)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorslider2blue <250 and factorslider2blue>0:
+        edit_imageafter=addsliderblue2(merged_image,factorslider2blue)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorslider2green < 250  and factorslider2green>0:
+       edit_imageafter=addslider2_green(merged_image,factorslider2green)
+       merged_image=Image.fromarray(edit_imageafter)
+    if factorslider1green < 130  and factorslider1green>0:
+       edit_imageafter=addslider1green(merged_image,factorslider1green)
+       merged_image=Image.fromarray(edit_imageafter)
+    if factorssliderred2<250 and factorssliderred2>0:
+        edit_imageafter=addslderred2(merged_image,factorssliderred2)
+        merged_image=Image.fromarray(edit_imageafter)
 
     buffered = BytesIO()
-    rgb_im = Image.fromarray(edited_image)
-    rgb_im.save(buffered, format="PNG",quality=100)
+   
+    merged_image.save(buffered, format="PNG",quality=100)
+    
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res), "hist_r": hist_r.tolist(), "hist_g": hist_g.tolist(), "hist_b": hist_b.tolist(), "width_img": width_img, "entry_1a": entry_1a, "entry_1b": entry_1b, "Sweat_Range":sweat_ranges })
 
+
+
 @edit_route.route('/color/green', methods=['POST'])
 def adjust_blue_channel():
-    global edited_image, real_image, hist_r, hist_g, hist_b, width_img
+    global edited_image, real_image, hist_r, hist_g, hist_b, width_img,hueblue,huered
     global entry_2a, entry_2b
-    response = request.json['response']
-    # entry_2a = request.json['entry_2a']
-    # entry_2b = request.json['entry_2b']
-    # slider_2a = request.json['slider_2a']
-    # slider_2b = request.json['slider_2b']
-    # sweat_ranges = request.json['sweat_ranges']
-    nparr = np.frombuffer(base64.b64decode(response), np.uint8)
+    global flaghuegreen
+    global huefactor
+    response = request.json['response']   
+    nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
     
     applyModel(img, idx = 1)
 
+    
     buffered = BytesIO()
-    rgb_im = Image.fromarray(edited_image)
-    rgb_im.save(buffered, format="PNG",quality=100)
-    res = base64.b64encode(buffered.getvalue())
-    # update_histograms('Green Channel',entry_1a,entry_1b,entry_2a,entry_2b,entry_3a,entry_3b,slider_1a,slider_1b,slider_2a,slider_2b,slider_3a,slider_3a,slider_3b)
+    merged_image = Image.fromarray(edited_image)
+    if(huefactor>0):
+        merged_image=blend_with_green(merged_image,huefactor)
+    if hueblue>0:
+        merged_image=blend_with_blue(merged_image,huefactor)
+    if huered>0:
+        merged_image=blend_with_red(merged_image,huered)
+    if facotrslider1blue <130 and facotrslider1blue>0:
+        edit_imageafter=addsliderblue1(merged_image,facotrslider1blue)
+        merged_image=Image.fromarray(edit_imageafter)
 
+    if factorslider2blue <250 and factorslider2blue>0:
+        edit_imageafter=addsliderblue2(merged_image,factorslider2blue)
+        merged_image=Image.fromarray(edit_imageafter)
+    if factorslider2green < 250  and factorslider2green>0:
+       edit_imageafter=addslider2_green(merged_image,factorslider2green)
+       merged_image=Image.fromarray(edit_imageafter)
+    if factorslider1green < 130  and factorslider1green>0:
+       edit_imageafter=addslider1green(merged_image,factorslider1green)
+       merged_image=Image.fromarray(edit_imageafter)
+    if factorsliderred1 <130 and factorsliderred1>0:
+        edit_imageafter=addsliderred1(merged_image,factorsliderred1)
+        merged_image=Image.fromarray(edit_imageafter)
+    if factorssliderred2<250 and factorssliderred2>0:
+        edit_imageafter=addslderred2(merged_image,factorssliderred2)
+        merged_image=Image.fromarray(edit_imageafter)
+    merged_image.save(buffered, format="PNG",quality=100)
+    res = base64.b64encode(buffered.getvalue())
    
+
+    
     return jsonify({"res": str(res), "hist_r": hist_r.tolist(), "hist_g": hist_g.tolist(), "hist_b": hist_b.tolist(), "width_img": width_img, "entry_2a": entry_2a, "entry_2b": entry_2b, "Sweat_Range":sweat_ranges })
 
 @edit_route.route('/color/blue', methods=['POST'])
 def adjust_red_channel():
-    global edited_image, real_image, hist_r, hist_g, hist_b, width_img
+    global edited_image, hist_r, hist_g, hist_b, width_img,real_image_user,huefactor,hueblue,huered
     response = request.json['response']
-    nparr = np.frombuffer(base64.b64decode(response), np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    nparr1 = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
+    img1 = cv2.imdecode(nparr1, cv2.IMREAD_COLOR)
     
-    applyModel(img, idx = 2)
-
+    applyModel(img1, idx = 2)
+    
     buffered = BytesIO()
-    rgb_im = Image.fromarray(edited_image)
-    rgb_im.save(buffered, format="PNG",quality=100)
+    merged_image = Image.fromarray(edited_image)
+    if(huefactor>0):
+        merged_image=blend_with_green(merged_image,huefactor)
+    if hueblue>0:
+        merged_image=blend_with_blue(merged_image,huefactor)
+    if huered>0:
+        merged_image=blend_with_red(merged_image,huered)
+    if factorslider2green < 250  and factorslider2green>0:
+       edit_imageafter=addslider2_green(merged_image,factorslider2green)
+       merged_image=Image.fromarray(edit_imageafter)
+    if factorslider1green < 130  and factorslider1green>0:
+       edit_imageafter=addslider1green(merged_image,factorslider1green)
+       merged_image=Image.fromarray(edit_imageafter)
+    if factorsliderred1 <130 and factorsliderred1>0:
+        edit_imageafter=addsliderred1(merged_image,factorsliderred1)
+        merged_image=Image.fromarray(edit_imageafter)
+    if factorssliderred2<250 and factorssliderred2>0:
+        edit_imageafter=addslderred2(merged_image,factorssliderred2)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    merged_image.save(buffered, format="PNG",quality=100)
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res), "hist_r": hist_r.tolist(), "hist_g": hist_g.tolist(), "hist_b": hist_b.tolist(), "width_img": width_img, "entry_3a": entry_3a, "entry_3b": entry_3b,"Sweat_Range":sweat_ranges  })
 
 
 @edit_route.route('/slider1/green', methods=['POST'])
 def slider1_green():
+    global huefactor, flaghuegreen,factorslider1green,flagslider2green,facotrslider1blue,factorslider2blue
     response = request.json['response']
     factor = request.json['factorial']
-    print(factor)
-    nparr = np.frombuffer(base64.b64decode(response), np.uint8)
+    factorslider1green = factor
+    # Load the image
+    nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
 
-   
+    # Apply hue adjustment
+    adjust_r_curve = adjust_channel_curve(r, np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    adjust_g_curve = adjust_channel_curve(g, np.array([[factor, 0], [255, 255]], dtype=np.uint8))
+    adjust_b_curve = adjust_channel_curve(b, np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    print(f'the {factorslider2green} factorslider2')
+    # Combine adjustments
+    edit_image = np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
+    # Convert numpy array to Image
+    
+    merged_image = Image.fromarray(edit_image)
+    # other logic 
+    if factorslider2green < 250  and factorslider2green>0:
+       edit_imageafter=addslider2_green(merged_image,factorslider2green)
+       merged_image=Image.fromarray(edit_imageafter)
+
+    if facotrslider1blue <130 and facotrslider1blue>0:
+        edit_imageafter=addsliderblue1(merged_image,facotrslider1blue)
+        merged_image=Image.fromarray(edit_imageafter)
+
+
+    if factorslider2blue <250 and factorslider2blue>0:
+        edit_imageafter=addsliderblue2(merged_image,factorslider2blue)
+        merged_image=Image.fromarray(edit_imageafter)
+    if factorsliderred1 <130 and factorsliderred1>0:
+        edit_imageafter=addsliderred1(merged_image,factorsliderred1)
+        merged_image=Image.fromarray(edit_imageafter)
+    if factorssliderred2<250 and factorssliderred2>0:
+        edit_imageafter=addslderred2(merged_image,factorssliderred2)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    print(f'the hue factor is {huefactor}')
+    if(huefactor>0):
+        merged_image=blend_with_green(merged_image,huefactor)
+    if(hueblue>0):
+        merged_image=blend_with_blue(merged_image,hueblue)
+    if huered>0:
+        merged_image=blend_with_red(merged_image,huered)
+    # other logic end 
+    # Convert merged image to base64
+    buffered = BytesIO()
+    merged_image.save(buffered, format="PNG", quality=100)
+    res = base64.b64encode(buffered.getvalue())
+
+    return jsonify({"res": str(res)})
+###################################### slider logic start ####################
+def addslider2_green(merged_image,factor):
+    merged_image = cv2.cvtColor(np.array(merged_image), cv2.COLOR_RGB2BGR)
+    b, g, r = cv2.split(merged_image)
+    adjust_r_curve = adjust_channel_curve(r,
+                                            np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    adjust_g_curve = adjust_channel_curve(g,
+                                            np.array([[0, 0], [factor, 255]], dtype=np.uint8))
+    adjust_b_curve = adjust_channel_curve(b,
+                                            np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    
+    return np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
+
+def addslider1green(merged_image,factor):
+    merged_image = cv2.cvtColor(np.array(merged_image), cv2.COLOR_RGB2BGR)
+    b, g, r = cv2.split(merged_image)
     adjust_r_curve = adjust_channel_curve(r,
                                             np.array([[0, 0], [255, 255]], dtype=np.uint8))
     adjust_g_curve = adjust_channel_curve(g,
                                             np.array([[factor, 0], [255, 255]], dtype=np.uint8))
     adjust_b_curve = adjust_channel_curve(b,
                                             np.array([[0, 0], [255, 255]], dtype=np.uint8))
-    print(adjust_g_curve)
-    edit_image = np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
-    buffered = BytesIO()
-    rgb_im = Image.fromarray(edit_image)
-    rgb_im.save(buffered, format="PNG",quality=100)
-    res = base64.b64encode(buffered.getvalue())
-    return jsonify({"res": str(res)})
+    
+    return np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
 
+def addsliderblue1(merged_image,factor):
+    merged_image = cv2.cvtColor(np.array(merged_image), cv2.COLOR_RGB2BGR)
+    b, g, r = cv2.split(merged_image)
+    adjust_r_curve = adjust_channel_curve(r,
+                                            np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    adjust_g_curve = adjust_channel_curve(g,
+                                            np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    adjust_b_curve = adjust_channel_curve(b,
+                                            np.array([[factor, 0], [255, 255]], dtype=np.uint8))
+    
+    return np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
+
+def addsliderblue2(merged_image,factor):
+    merged_image = cv2.cvtColor(np.array(merged_image), cv2.COLOR_RGB2BGR)
+    b, g, r = cv2.split(merged_image)
+    adjust_r_curve = adjust_channel_curve(r,
+                                            np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    adjust_g_curve = adjust_channel_curve(g,
+                                            np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    adjust_b_curve = adjust_channel_curve(b,
+                                            np.array([[0, 0], [factor, 255]], dtype=np.uint8))
+    
+    return np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
+
+def addsliderred1(merged_image,factor):
+    merged_image = cv2.cvtColor(np.array(merged_image), cv2.COLOR_RGB2BGR)
+    b, g, r = cv2.split(merged_image)
+    adjust_r_curve = adjust_channel_curve(r,
+                                            np.array([[factor, 0], [255, 255]], dtype=np.uint8))
+    adjust_g_curve = adjust_channel_curve(g,
+                                            np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    adjust_b_curve = adjust_channel_curve(b,
+                                            np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    return np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
+
+def addslderred2(merged_image,factor):
+    merged_image = cv2.cvtColor(np.array(merged_image), cv2.COLOR_RGB2BGR)
+    b, g, r = cv2.split(merged_image)
+    adjust_r_curve = adjust_channel_curve(r,
+                                            np.array([[0, 0], [factor, 255]], dtype=np.uint8))
+    adjust_g_curve = adjust_channel_curve(g,
+                                            np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    adjust_b_curve = adjust_channel_curve(b,
+                                            np.array([[0, 0], [255, 255]], dtype=np.uint8))
+    return np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
+
+############################################# slider of the image end ##################
 
 @edit_route.route('/slider2/green', methods=['POST'])
 def slider2_green():
-    response = request.json['response']
+    global huefactor,factorslider2green,factorslider1green,hueblue
     factor = request.json['factorial']
     print(factor)
-    nparr = np.frombuffer(base64.b64decode(response), np.uint8)
+    factorslider2green=factor
+    nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
 
@@ -657,18 +821,47 @@ def slider2_green():
                                             np.array([[0, 0], [255, 255]], dtype=np.uint8))
     print(adjust_g_curve)
     edit_image = np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
+
+    merged_image = Image.fromarray(edit_image)
+    # other side of logic
+    if factorslider1green < 130  and factorslider1green>0:
+       edit_imageafter=addslider1green(merged_image,factorslider1green)
+       merged_image=Image.fromarray(edit_imageafter)
+
+    if facotrslider1blue <130 and facotrslider1blue>0:
+        edit_imageafter=addsliderblue1(merged_image,facotrslider1blue)
+        merged_image=Image.fromarray(edit_imageafter)
+    if factorslider2blue <250 and factorslider2blue>0:
+        edit_imageafter=addsliderblue2(merged_image,factorslider2blue)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if(huefactor>0):
+        merged_image=blend_with_green(merged_image,huefactor)
+
+    if(hueblue>0):
+        merged_image=blend_with_blue(merged_image,hueblue) 
+    if huered>0:
+        merged_image=blend_with_red(merged_image,huered)
+    if factorsliderred1 <130 and factorsliderred1>0:
+        edit_imageafter=addsliderred1(merged_image,factorsliderred1)
+        merged_image=Image.fromarray(edit_imageafter)
+    if factorssliderred2<250 and factorssliderred2>0:
+        edit_imageafter=addslderred2(merged_image,factorssliderred2)
+        merged_image=Image.fromarray(edit_imageafter)
+    # other side end
     buffered = BytesIO()
-    rgb_im = Image.fromarray(edit_image)
-    rgb_im.save(buffered, format="PNG",quality=100)
+    
+    merged_image.save(buffered, format="PNG",quality=100)
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
 @edit_route.route('/slider1/blue', methods=['POST'])
 def slider1_blue():
-    response = request.json['response']
+    global hueblue,huefactor,factorslider1green,factorslider2green,facotrslider1blue,factorslider2blue
     factor = request.json['factorial']
     print(factor)
-    nparr = np.frombuffer(base64.b64decode(response), np.uint8)
+    facotrslider1blue=factor
+    nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
 
@@ -681,16 +874,47 @@ def slider1_blue():
     print(adjust_g_curve)
     edit_image = np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
     buffered = BytesIO()
-    rgb_im = Image.fromarray(edit_image)
-    rgb_im.save(buffered, format="PNG",quality=100)
+
+    merged_image = Image.fromarray(edit_image)
+    # other side of logic
+    if factorslider1green < 130  and factorslider1green>0:
+       edit_imageafter=addslider1green(merged_image,factorslider1green)
+       merged_image=Image.fromarray(edit_imageafter)
+
+    if factorslider2green < 250  and factorslider2green>0:
+       edit_imageafter=addslider2_green(merged_image,factorslider2green)
+       merged_image=Image.fromarray(edit_imageafter)
+
+    if factorslider2blue <250 and factorslider2blue>0:
+        edit_imageafter=addsliderblue2(merged_image,factorslider2blue)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorsliderred1 <130 and factorsliderred1>0:
+        edit_imageafter=addsliderred1(merged_image,factorsliderred1)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorssliderred2<250 and factorssliderred2>0:
+        edit_imageafter=addslderred2(merged_image,factorssliderred2)
+        merged_image=Image.fromarray(edit_imageafter)
+    if(huefactor>0):
+        merged_image=blend_with_green(merged_image,huefactor)
+    
+    if(hueblue>0):
+        merged_image=blend_with_blue(merged_image,hueblue) 
+    if huered>0:
+        merged_image=blend_with_red(merged_image,huered)
+    # other side of logic end 
+    merged_image.save(buffered, format="PNG",quality=100)
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
 @edit_route.route('/slider2/blue', methods=['POST'])
 def slider2_blue():
+    global hueblue,huefactor,factorslider1green,factorslider2green,facotrslider1blue,factorslider2blue
     response = request.json['response']
     factor = request.json['factorial']
     print(factor)
+    factorslider2blue=factor
     nparr = np.frombuffer(base64.b64decode(response), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
@@ -703,6 +927,36 @@ def slider2_blue():
                                             np.array([[0, 0], [factor, 255]], dtype=np.uint8))
     print(adjust_g_curve)
     edit_image = np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
+    merged_image = Image.fromarray(edit_image)
+    # other logic
+    if factorslider1green < 130  and factorslider1green>0:
+       edit_imageafter=addslider1green(merged_image,factorslider1green)
+       merged_image=Image.fromarray(edit_imageafter)
+    if factorslider2green < 250  and factorslider2green>0:
+       edit_imageafter=addslider2_green(merged_image,factorslider2green)
+       merged_image=Image.fromarray(edit_imageafter)
+
+    if facotrslider1blue <130 and facotrslider1blue>0:
+        edit_imageafter=addsliderblue1(merged_image,facotrslider1blue)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorsliderred1 <130 and factorsliderred1>0:
+        edit_imageafter=addsliderred1(merged_image,factorsliderred1)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorssliderred2<250 and factorssliderred2>0:
+        edit_imageafter=addslderred2(merged_image,factorssliderred2)
+        merged_image=Image.fromarray(edit_imageafter)
+    if(huefactor>0):
+        merged_image=blend_with_green(merged_image,huefactor)
+    
+    if(hueblue>0):
+        merged_image=blend_with_blue(merged_image,hueblue)
+    if huered>0 :
+        merged_image=blend_with_red(merged_image,huered)
+
+
+    # other logic end 
     buffered = BytesIO()
     rgb_im = Image.fromarray(edit_image)
     rgb_im.save(buffered, format="PNG",quality=100)
@@ -711,10 +965,11 @@ def slider2_blue():
 
 @edit_route.route('/slider1/red', methods=['POST'])
 def slider1_red():
-    response = request.json['response']
+    global factorsliderred1,factorssliderred2
     factor = request.json['factorial']
     print(factor)
-    nparr = np.frombuffer(base64.b64decode(response), np.uint8)
+    factorsliderred1=factor
+    nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
 
@@ -726,9 +981,38 @@ def slider1_red():
                                             np.array([[0, 0], [255, 255]], dtype=np.uint8))
     print(adjust_g_curve)
     edit_image = np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
+    merged_image= Image.fromarray(edit_image)
+    # other side of logic 
+    if factorslider1green <130 and factorslider1green>0:
+        edit_imageafter=addslider1green(merged_image,factorslider1green)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorslider2green < 250  and factorslider2green>0:
+       edit_imageafter=addslider2_green(merged_image,factorslider2green)
+       merged_image=Image.fromarray(edit_imageafter)
+
+    if facotrslider1blue <130 and facotrslider1blue>0:
+        edit_imageafter=addsliderblue1(merged_image,facotrslider1blue)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorslider2blue <250 and factorslider2blue>0:
+        edit_imageafter=addsliderblue2(merged_image,factorslider2blue)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorssliderred2<250 and factorssliderred2>0:
+        edit_imageafter=addslderred2(merged_image,factorssliderred2)
+        merged_image=Image.fromarray(edit_imageafter)
+    print(f'the hue factor is {huefactor}')
+    if(huefactor>0):
+        merged_image=blend_with_green(merged_image,huefactor)
+    if(hueblue>0):
+        merged_image=blend_with_blue(merged_image,hueblue)
+    if huered>0:
+        merged_image=blend_with_red(merged_image,huered)
+
     buffered = BytesIO()
-    rgb_im = Image.fromarray(edit_image)
-    rgb_im.save(buffered, format="PNG",quality=100)
+    
+    merged_image.save(buffered, format="PNG",quality=100)
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -737,7 +1021,7 @@ def slider2_red():
     response = request.json['response']
     factor = request.json['factorial']
     print(factor)
-    nparr = np.frombuffer(base64.b64decode(response), np.uint8)
+    nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
 
@@ -749,52 +1033,194 @@ def slider2_red():
                                             np.array([[0, 0], [255, 255]], dtype=np.uint8))
     print(adjust_g_curve)
     edit_image = np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
+    merged_image= Image.fromarray(edit_image)
+    # other side of logic 
+    if factorslider1green <130 and factorslider1green>0:
+        edit_imageafter=addslider1green(merged_image,factorslider1green)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorslider2green < 250  and factorslider2green>0:
+       edit_imageafter=addslider2_green(merged_image,factorslider2green)
+       merged_image=Image.fromarray(edit_imageafter)
+
+    if facotrslider1blue <130 and facotrslider1blue>0:
+        edit_imageafter=addsliderblue1(merged_image,facotrslider1blue)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorslider2blue <250 and factorslider2blue>0:
+        edit_imageafter=addsliderblue2(merged_image,factorslider2blue)
+        merged_image=Image.fromarray(edit_imageafter)
+
+    if factorsliderred1 <130 and factorsliderred1>0:
+        edit_imageafter=addsliderred1(merged_image,factorsliderred1)
+        merged_image=Image.fromarray(edit_imageafter)
+    print(f'the hue factor is {huefactor}')
+    if(huefactor>0):
+        merged_image=blend_with_green(merged_image,huefactor)
+    if(hueblue>0):
+        merged_image=blend_with_blue(merged_image,hueblue)
+    if huered>0:
+        merged_image=blend_with_red(merged_image,huered)
+
     buffered = BytesIO()
-    rgb_im = Image.fromarray(edit_image)
-    rgb_im.save(buffered, format="PNG",quality=100)
+    
+    merged_image.save(buffered, format="PNG",quality=100)
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
+def blend_with_green(original_image, factor):
+    # Create a green layer with the same size as the image
+    """" 
+    This function takes form the origianl image and factor and return blended image 
+    """
+    green_layer = Image.new('RGB', original_image.size, 'green')
+
+    # Blend the original image with the green layer using the specified factor
+    blended_image = Image.blend(original_image, green_layer, factor)
+    
+    return blended_image
+
+def blend_with_blue(original_image, factor):
+    # Create a green layer with the same size as the image
+    """" 
+    This function takes form the origianl image and factor and return blended image 
+    """
+    green_layer = Image.new('RGB', original_image.size, 'blue')
+
+    # Blend the original image with the green layer using the specified factor
+    blended_image = Image.blend(original_image, green_layer, factor)
+    
+    return blended_image
+
+def blend_with_red(original_image, factor):
+    # Create a green layer with the same size as the image
+    """" 
+    This function takes form the origianl image and factor and return blended image 
+    """
+    blue_layer = Image.new('RGB', original_image.size, 'red')
+
+    # Blend the original image with the green layer using the specified factor
+    blended_image = Image.blend(original_image, blue_layer, factor)
+    
+    return blended_image
 @edit_route.route('/hue/green', methods=['POST'])
 def adjust_hue_green():
-    global edited_image, real_image, hist_r, hist_g, hist_b, width_img
+    global flaghuegreen,huefactor,hueblue,factorslider1green,factorslider1green,facotrslider1blue
+    flaghuegreen=1
+
     response = request.json['response']
     factor = request.json['factorial']
-    basedur = base64.b64decode(response)
+    huefactor=factor
+    basedur = base64.b64decode(real_image_user)
     basedur = BytesIO(basedur)
     im = Image.open(basedur)
-    layer = Image.new('RGB', im.size, 'green')
-    output = Image.blend(im, layer, factor)
+    output=blend_with_green(im, factor)
+    # other logic start 
+    if hueblue>0 :
+        output=blend_with_blue(im,hueblue)
+    if huered>0:
+        output=blend_with_red(im,huered)
+    if huefactor==0 and huefactor==0.1:
+        if(factorslider1green>0 and factorslider1green<=130):
+            silder1image=addslider1green(output,factorslider1green)
+            output=Image.fromarray(silder1image)
+        if(factorslider2green>0 and factorslider2green<=255):
+            silder1image=addslider2_green(output,factorslider2green)
+            output=Image.fromarray(silder1image)
+        if facotrslider1blue <130 and facotrslider1blue>0:
+            edit_imageafter=addsliderblue1(output,facotrslider1blue)
+            output=Image.fromarray(edit_imageafter)
+        if factorslider2blue <250 and factorslider2blue>0:
+            edit_imageafter=addsliderblue2(output,factorslider2blue)
+            output=Image.fromarray(edit_imageafter)
+        if factorsliderred1 <130 and factorsliderred1>0:
+            edit_imageafter=addsliderred1(output,factorsliderred1)
+            output=Image.fromarray(edit_imageafter)
+        if factorssliderred2<250 and factorssliderred2>0:
+            edit_imageafter=addslderred2(output,factorssliderred2)
+            output=Image.fromarray(edit_imageafter)
+        # other logic end 
     buffered = BytesIO()
     output.save(buffered, format="PNG",quality=100)
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
+ 
+
 
 @edit_route.route('/hue/blue', methods=['POST'])
 def adjust_hue_blue():
-    global edited_image, real_image, hist_r, hist_g, hist_b, width_img
-    response = request.json['response']
+    global huefactor,hueblue,flaghuegreen
     factor = request.json['factorial']
-    basedur = base64.b64decode(response)
+    hueblue=factor
+    basedur = base64.b64decode(real_image_user)
     basedur = BytesIO(basedur)
     im = Image.open(basedur)
-    layer = Image.new('RGB', im.size, 'blue')
-    output = Image.blend(im, layer, factor)
     buffered = BytesIO()
+    output=blend_with_blue(im, factor)
+
+    # other logic 
+    if huefactor >0:
+        output=blend_with_green(output,huefactor)
+    if huered>0:
+        output=blend_with_red(output,huered)
+    if hueblue==0 or hueblue==0.1:
+        if(factorslider1green>0 and factorslider1green<=130):
+            silder1image=addslider1green(output,factorslider1green)
+            output=Image.fromarray(silder1image)
+        if(factorslider2green>0 and factorslider2green<=255):
+            silder1image=addslider2_green(output,factorslider2green)
+            output=Image.fromarray(silder1image)
+        if facotrslider1blue <130 and facotrslider1blue>0:
+            edit_imageafter=addsliderblue1(output,facotrslider1blue)
+            output=Image.fromarray(edit_imageafter)
+        if factorslider2blue <250 and factorslider2blue>0:
+            edit_imageafter=addsliderblue2(output,factorslider2blue)
+            output=Image.fromarray(edit_imageafter)
+        if factorsliderred1 <130 and factorsliderred1>0:
+            edit_imageafter=addsliderred1(output,factorsliderred1)
+            output=Image.fromarray(edit_imageafter)
+        if factorssliderred2<250 and factorssliderred2>0:
+            edit_imageafter=addslderred2(output,factorssliderred2)
+            output=Image.fromarray(edit_imageafter)
+    # other logic end 
     output.save(buffered, format="PNG",quality=100)
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
 @edit_route.route('/hue/red', methods=['POST'])
 def adjust_hue_red():
-    global edited_image, real_image, hist_r, hist_g, hist_b, width_img
+    global edited_image, hist_r, hist_g, hist_b, width_img,hueblue,huefactor,huered
     response = request.json['response']
     factor = request.json['factorial']
-    basedur = base64.b64decode(response)
+    huered=factor
+    basedur = base64.b64decode(real_image_user)
     basedur = BytesIO(basedur)
     im = Image.open(basedur)
-    layer = Image.new('RGB', im.size, 'red')
-    output = Image.blend(im, layer, factor)
+
+    output=blend_with_red(im,factor)
+    if huefactor >0:
+     output=blend_with_green(output,huefactor)
+    if hueblue>0:
+        output=blend_with_red(output,hueblue)
+    if huered==0 or huered==0.1:
+        if(factorslider1green>0 and factorslider1green<=130):
+            silder1image=addslider1green(output,factorslider1green)
+            output=Image.fromarray(silder1image)
+        if(factorslider2green>0 and factorslider2green<=255):
+            silder1image=addslider2_green(output,factorslider2green)
+            output=Image.fromarray(silder1image)
+        if facotrslider1blue <130 and facotrslider1blue>0:
+            edit_imageafter=addsliderblue1(output,facotrslider1blue)
+            output=Image.fromarray(edit_imageafter)
+        if factorslider2blue <250 and factorslider2blue>0:
+            edit_imageafter=addsliderblue2(output,factorslider2blue)
+            output=Image.fromarray(edit_imageafter)
+        if factorsliderred1 <130 and factorsliderred1>0:
+            output=addsliderred1(output,factorsliderred1)
+            output=Image.fromarray(edit_imageafter)
+        if factorssliderred2<250 and factorssliderred2>0:
+            edit_imageafter=addslderred2(output,factorssliderred2)
+            output=Image.fromarray(edit_imageafter)
     buffered = BytesIO()
     output.save(buffered, format="PNG",quality=100)
     res = base64.b64encode(buffered.getvalue())
@@ -843,11 +1269,4 @@ def upscale_image():
     result = sr.upsample(im_np) # upscale the input image
     _, buffer = cv2.imencode('.png', result)
     result_base64 = base64.b64encode(buffer).decode('utf-8')
-
-    
-
-
-
-
-
     return jsonify({'res': result_base64})

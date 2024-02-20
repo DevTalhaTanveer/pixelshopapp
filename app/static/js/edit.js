@@ -89,7 +89,8 @@ const red_saturation_1_label = document
 const red_saturation_2_label = document
   .querySelector("#red-saturation-2-label")
   .querySelector(".value");
-
+const path_of_the_original_image=document.querySelector("#col-image > div.col-image > div.image-container > div.original-image > img")
+console.log(path_of_the_original_image);
 const height = document.querySelector("#height");
 const width = document.querySelector("#width");
 // const show = collapseOne.classList.contains("show")
@@ -121,6 +122,28 @@ let upscalebtn=document.querySelector("#edit > button")
 console.log(upscalebtn);
 // end decleration
 document.querySelector("#headingFour > h5")
+
+//send original  image in the flask app
+path_of_the_original_image.addEventListener('load',async ()=>{
+  let original_image_form_the_user=path_of_the_original_image.src
+  response=original_image_form_the_user.split("base64,")[1]
+  axios
+    .post(
+      "/upload/originalimage",
+      {
+        response,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((res) => {
+      console.log(res)
+    })
+    .catch((err) => console.error(err));
+})
 
 
 
@@ -163,7 +186,6 @@ brightnessInput.addEventListener("change", function (e) {
     saturation < 1 ||
     exposure < 1
   ) {
-    console.log("a");
     response = previewImage.src;
     response = response.split("base64,")[1];
   }
@@ -604,7 +626,7 @@ greenhue.addEventListener("change", function (e) {
       const image = res.data.res;
       let result = image.split("'")[1];
       previewImage.setAttribute("src", "data:image/png;base64," + result);
-
+     
       loader.style.display = "none";
     })
     .catch((err) => console.error(err));
@@ -917,6 +939,7 @@ bluehue.addEventListener("change", function (e) {
   bluehueLabel.innerHTML = value;
   console.log(value);
   let response = originImage;
+ 
   let contrast = Number(contrastLabel.innerHTML);
   let brightness = Number(brightnessLabel.innerHTML);
   let sharpness = Number(sharpnessLabel.innerHTML);
@@ -930,7 +953,6 @@ bluehue.addEventListener("change", function (e) {
   let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
   let blue_saturation_1 = Number(blue_saturation_1_label.innerHTML);
   let blue_saturation_2 = Number(blue_saturation_2_label.innerHTML);
-
   if (
     contrast > 1 ||
     brightness > 1 ||
@@ -1775,6 +1797,7 @@ blueInput.addEventListener("click", async function (e) {
   let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
   let blue_hue = Number(bluehueLabel.innerHTML);
   let response = originImage;
+  
   if (!blueChanged) {
     blueChanged = true;
   }

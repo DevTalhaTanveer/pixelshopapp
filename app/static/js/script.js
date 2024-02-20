@@ -101,9 +101,7 @@ imageInput.addEventListener("change", function (input) {
       preview.style.display = "flex";
       imageInput.style.display = "none";
 
-      // Increase the image upload count
 
-      // Reload the page if it's the second image upload
     };
     fileReader.readAsDataURL(input.target.files[0]);
   }
