@@ -915,7 +915,7 @@ def slider2_blue():
     factor = request.json['factorial']
     print(factor)
     factorslider2blue=factor
-    nparr = np.frombuffer(base64.b64decode(response), np.uint8)
+    nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
 
