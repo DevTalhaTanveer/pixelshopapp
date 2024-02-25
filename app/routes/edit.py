@@ -95,7 +95,7 @@ def brightness():
     buffered = BytesIO()
     
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="PNG",quality=100)
+    rgb_im.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
   
     return jsonify({"res": str(res)})
@@ -113,7 +113,7 @@ def contrast():
     im_output = enhancer.enhance(factor)
     buffered = BytesIO()
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="PNG",quality=100)
+    rgb_im.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -131,7 +131,7 @@ def sharpness():
     im_output = enhancer.enhance(factor)
     buffered = BytesIO()
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="JPEG",quality=100)
+    rgb_im.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -150,7 +150,7 @@ def saturation():
     im_output = enhancer.enhance(factor)
     buffered = BytesIO()
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="JPEG",quality=100)
+    rgb_im.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -166,7 +166,7 @@ def adjust_exposure():
     im_output = Image.fromarray(im_output)
     buffered = BytesIO()
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="JPEG",quality=100)
+    rgb_im.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -191,7 +191,7 @@ def adjust_filter():
     im_output = blend_images(im, im_output, 1 - float(factor))
     buffered = BytesIO()
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="JPEG",quality=100)
+    rgb_im.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -585,7 +585,7 @@ def adjust_green_channel():
 
     buffered = BytesIO()
    
-    merged_image.save(buffered, format="PNG",quality=100)
+    merged_image.save(buffered, format="PNG")
     
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res), "hist_r": hist_r.tolist(), "hist_g": hist_g.tolist(), "hist_b": hist_b.tolist(), "width_img": width_img, "entry_1a": entry_1a, "entry_1b": entry_1b, "Sweat_Range":sweat_ranges })
@@ -633,7 +633,7 @@ def adjust_blue_channel():
     if factorssliderred2<250 and factorssliderred2>0:
         edit_imageafter=addslderred2(merged_image,factorssliderred2)
         merged_image=Image.fromarray(edit_imageafter)
-    merged_image.save(buffered, format="PNG",quality=100)
+    merged_image.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
    
 
@@ -670,7 +670,7 @@ def adjust_red_channel():
         edit_imageafter=addslderred2(merged_image,factorssliderred2)
         merged_image=Image.fromarray(edit_imageafter)
 
-    merged_image.save(buffered, format="PNG",quality=100)
+    merged_image.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res), "hist_r": hist_r.tolist(), "hist_g": hist_g.tolist(), "hist_b": hist_b.tolist(), "width_img": width_img, "entry_3a": entry_3a, "entry_3b": entry_3b,"Sweat_Range":sweat_ranges  })
 
@@ -726,7 +726,7 @@ def slider1_green():
     # other logic end 
     # Convert merged image to base64
     buffered = BytesIO()
-    merged_image.save(buffered, format="PNG", quality=100)
+    merged_image.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
 
     return jsonify({"res": str(res)})
@@ -851,7 +851,7 @@ def slider2_green():
     # other side end
     buffered = BytesIO()
     
-    merged_image.save(buffered, format="PNG",quality=100)
+    merged_image.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -904,7 +904,7 @@ def slider1_blue():
     if huered>0:
         merged_image=blend_with_red(merged_image,huered)
     # other side of logic end 
-    merged_image.save(buffered, format="PNG",quality=100)
+    merged_image.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -959,7 +959,7 @@ def slider2_blue():
     # other logic end 
     buffered = BytesIO()
     rgb_im = Image.fromarray(edit_image)
-    rgb_im.save(buffered, format="PNG",quality=100)
+    rgb_im.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -1012,7 +1012,7 @@ def slider1_red():
 
     buffered = BytesIO()
     
-    merged_image.save(buffered, format="PNG",quality=100)
+    merged_image.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -1064,7 +1064,7 @@ def slider2_red():
 
     buffered = BytesIO()
     
-    merged_image.save(buffered, format="PNG",quality=100)
+    merged_image.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -1141,7 +1141,7 @@ def adjust_hue_green():
             output=Image.fromarray(edit_imageafter)
         # other logic end 
     buffered = BytesIO()
-    output.save(buffered, format="PNG",quality=100)
+    output.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
  
@@ -1183,7 +1183,7 @@ def adjust_hue_blue():
             edit_imageafter=addslderred2(output,factorssliderred2)
             output=Image.fromarray(edit_imageafter)
     # other logic end 
-    output.save(buffered, format="PNG",quality=100)
+    output.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -1222,7 +1222,7 @@ def adjust_hue_red():
             edit_imageafter=addslderred2(output,factorssliderred2)
             output=Image.fromarray(edit_imageafter)
     buffered = BytesIO()
-    output.save(buffered, format="PNG",quality=100)
+    output.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -1249,7 +1249,7 @@ def temperature():
               blue / 255, 0, )
     im = im.convert('RGB',matrix=matrix)
     buffered = BytesIO()
-    im.save(buffered, format="PNG",quality=100)
+    im.save(buffered, format="PNG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
