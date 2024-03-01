@@ -95,7 +95,7 @@ def brightness():
     buffered = BytesIO()
     
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="PNG")
+    rgb_im.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
   
     return jsonify({"res": str(res)})
@@ -113,7 +113,7 @@ def contrast():
     im_output = enhancer.enhance(factor)
     buffered = BytesIO()
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="PNG")
+    rgb_im.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -131,7 +131,7 @@ def sharpness():
     im_output = enhancer.enhance(factor)
     buffered = BytesIO()
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="PNG")
+    rgb_im.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -150,7 +150,7 @@ def saturation():
     im_output = enhancer.enhance(factor)
     buffered = BytesIO()
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="PNG")
+    rgb_im.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -166,7 +166,7 @@ def adjust_exposure():
     im_output = Image.fromarray(im_output)
     buffered = BytesIO()
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="PNG")
+    rgb_im.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -191,12 +191,37 @@ def adjust_filter():
     im_output = blend_images(im, im_output, 1 - float(factor))
     buffered = BytesIO()
     rgb_im = im_output.convert('RGB')
-    rgb_im.save(buffered, format="PNG")
+    rgb_im.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
+@edit_route.route('/createGraphs', methods=['POST'])
+def CreateImageGraph():
+    nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    b, g, r = cv2.split(img)
+   
+
+    # Create histograms for the adjusted channels
+    hist_r = cv2.calcHist([r], [0], None, [256], [0, 256])
+    hist_g = cv2.calcHist([g], [0], None, [256], [0, 256])
+    hist_b = cv2.calcHist([b], [0], None, [256], [0, 256])
+
+    # Convert histograms to NumPy arrays
+    hist_r = np.squeeze(hist_r)
+    hist_g = np.squeeze(hist_g)
+    hist_b = np.squeeze(hist_b)
+
+    hist_r = (hist_r / max(hist_r)) * 255
+    hist_g = (hist_g / max(hist_g)) * 255
+    hist_b = (hist_b / max(hist_b)) * 255
+
+    return jsonify({"hist_r": hist_r.tolist(), "hist_g": hist_g.tolist(), "hist_b": hist_b.tolist()})
+
+
 def createImageHistogram(image):
     # Split the image into R, G, B channels
+    
     b, g, r = cv2.split(image)
    
 
@@ -550,9 +575,6 @@ def applyModel(I, idx = 0):
 @edit_route.route('/color/red', methods=['POST'])
 def adjust_green_channel():
     global edited_image, real_image, hist_r, hist_g, hist_b, width_img,huered,hueblue,huefactor
-    response = request.json['response']
-  
-    print(sweat_ranges)
     nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     
@@ -585,7 +607,7 @@ def adjust_green_channel():
 
     buffered = BytesIO()
    
-    merged_image.save(buffered, format="PNG")
+    merged_image.save(buffered, format="JPEG")
     
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res), "hist_r": hist_r.tolist(), "hist_g": hist_g.tolist(), "hist_b": hist_b.tolist(), "width_img": width_img, "entry_1a": entry_1a, "entry_1b": entry_1b, "Sweat_Range":sweat_ranges })
@@ -598,7 +620,6 @@ def adjust_blue_channel():
     global entry_2a, entry_2b
     global flaghuegreen
     global huefactor
-    response = request.json['response']   
     nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
@@ -633,7 +654,7 @@ def adjust_blue_channel():
     if factorssliderred2<250 and factorssliderred2>0:
         edit_imageafter=addslderred2(merged_image,factorssliderred2)
         merged_image=Image.fromarray(edit_imageafter)
-    merged_image.save(buffered, format="PNG")
+    merged_image.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
    
 
@@ -643,7 +664,6 @@ def adjust_blue_channel():
 @edit_route.route('/color/blue', methods=['POST'])
 def adjust_red_channel():
     global edited_image, hist_r, hist_g, hist_b, width_img,real_image_user,huefactor,hueblue,huered
-    response = request.json['response']
     nparr1 = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img1 = cv2.imdecode(nparr1, cv2.IMREAD_COLOR)
     
@@ -670,7 +690,7 @@ def adjust_red_channel():
         edit_imageafter=addslderred2(merged_image,factorssliderred2)
         merged_image=Image.fromarray(edit_imageafter)
 
-    merged_image.save(buffered, format="PNG")
+    merged_image.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res), "hist_r": hist_r.tolist(), "hist_g": hist_g.tolist(), "hist_b": hist_b.tolist(), "width_img": width_img, "entry_3a": entry_3a, "entry_3b": entry_3b,"Sweat_Range":sweat_ranges  })
 
@@ -726,7 +746,7 @@ def slider1_green():
     # other logic end 
     # Convert merged image to base64
     buffered = BytesIO()
-    merged_image.save(buffered, format="PNG")
+    merged_image.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
 
     return jsonify({"res": str(res)})
@@ -851,7 +871,7 @@ def slider2_green():
     # other side end
     buffered = BytesIO()
     
-    merged_image.save(buffered, format="PNG")
+    merged_image.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -904,7 +924,7 @@ def slider1_blue():
     if huered>0:
         merged_image=blend_with_red(merged_image,huered)
     # other side of logic end 
-    merged_image.save(buffered, format="PNG")
+    merged_image.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -959,7 +979,7 @@ def slider2_blue():
     # other logic end 
     buffered = BytesIO()
     rgb_im = Image.fromarray(edit_image)
-    rgb_im.save(buffered, format="PNG")
+    rgb_im.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -1012,7 +1032,7 @@ def slider1_red():
 
     buffered = BytesIO()
     
-    merged_image.save(buffered, format="PNG")
+    merged_image.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -1064,7 +1084,7 @@ def slider2_red():
 
     buffered = BytesIO()
     
-    merged_image.save(buffered, format="PNG")
+    merged_image.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -1107,13 +1127,14 @@ def blend_with_red(original_image, factor):
 def adjust_hue_green():
     global flaghuegreen,huefactor,hueblue,factorslider1green,factorslider1green,facotrslider1blue
     flaghuegreen=1
-
-    response = request.json['response']
+    print('enter in the hue')
+    # response = request.json['response']
     factor = request.json['factorial']
     huefactor=factor
     basedur = base64.b64decode(real_image_user)
     basedur = BytesIO(basedur)
     im = Image.open(basedur)
+
     output=blend_with_green(im, factor)
     # other logic start 
     if hueblue>0 :
@@ -1140,9 +1161,12 @@ def adjust_hue_green():
             edit_imageafter=addslderred2(output,factorssliderred2)
             output=Image.fromarray(edit_imageafter)
         # other logic end 
+    print('end')
     buffered = BytesIO()
-    output.save(buffered, format="PNG")
+    output.save(buffered, format="JPEG")
+    print('end')
     res = base64.b64encode(buffered.getvalue())
+    print('end')
     return jsonify({"res": str(res)})
  
 
@@ -1183,7 +1207,7 @@ def adjust_hue_blue():
             edit_imageafter=addslderred2(output,factorssliderred2)
             output=Image.fromarray(edit_imageafter)
     # other logic end 
-    output.save(buffered, format="PNG")
+    output.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -1222,7 +1246,7 @@ def adjust_hue_red():
             edit_imageafter=addslderred2(output,factorssliderred2)
             output=Image.fromarray(edit_imageafter)
     buffered = BytesIO()
-    output.save(buffered, format="PNG")
+    output.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -1249,7 +1273,7 @@ def temperature():
               blue / 255, 0, )
     im = im.convert('RGB',matrix=matrix)
     buffered = BytesIO()
-    im.save(buffered, format="PNG")
+    im.save(buffered, format="JPEG")
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res)})
 
@@ -1267,6 +1291,7 @@ def upscale_image():
     sr.readModel(model_path)
     sr.setModel("espcn", 4) # set the model by passing the value and the upsampling ratio
     result = sr.upsample(im_np) # upscale the input image
-    _, buffer = cv2.imencode('.png', result)
+    _, buffer = cv2.imencode('.JPEG', result)
     result_base64 = base64.b64encode(buffer).decode('utf-8')
     return jsonify({'res': result_base64})
+

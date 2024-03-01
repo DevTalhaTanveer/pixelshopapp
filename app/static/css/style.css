@@ -212,3 +212,11 @@ button:disabled{
   .fade-in {
     animation: fadeIn 0.5s ease-in-out;
   }
+  .custom-range-input1{
+    width: 90px !important;}
+  #channel-dropdown {
+    padding: 10px; /* Adjust padding as needed */
+    font-size: 16px; /* Adjust font size as needed */
+    width: 200px; /* Adjust width as needed */
+    margin-left: 50px;
+}

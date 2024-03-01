@@ -9,188 +9,144 @@
             Color Correction
         </h5>
     </div>
-    <div id="collapseTwo" class="collapse" aria-labelledby="crop-resize" data-parent="#accordion">
+        <div id="collapseTwo" class="collapse" aria-labelledby="crop-resize" data-parent="#accordion" style="" >
         <div class="card-body">
             <div class="container">
-                <div class="row g-0">
+                <div class="container"  style="display: block;" id="huegreenid">
+                    <label for="custom-hue-label" class="custom-range-label" id="green-hue-label">
+                        <span class="label" id="hue-label">Green Hue</span>
+                        <span class="value" id="hue-value">0</span>
+                    </label>
+                    <input type="range" min="0" max="1" value="0" step="0.1" class="custom-range-input" id="green-hue" name="hue">
+                </div>
+                <div class="container" style="display: none;" id="hueblueid">
+                    <label for="custom-hue-label" class="custom-range-label" id="blue-hue-label">
+                        <span class="label" id="hue-label">Blue Hue</span>
+                        <span class="value" id="hue-value">0</span>
+                    </label>
+                    <input type="range" min="0" max="1" value="0" step="0.1" class="custom-range-input" id="blue-hue" name="hue">
+                </div>
+                <div class="container" style="display: none;" id="hueredid">
+                    <label for="custom-hue-label" class="custom-range-label" id="red-hue-label">
+                        <span class="label" id="hue-label">Red Hue</span>
+                        <span class="value" id="hue-value">0</span>
+                    </label>
+                    <input type="range" min="0" max="1" value="0" step="0.1" class="custom-range-input" id="red-hue" name="hue">
+                </div>
+                <select id="channel-dropdown">
+                    <option value="green">Green Channel</option>
+                    <option value="blue">Blue Channel</option>
+                    <option value="red">Red Channel</option>
+                </select>
+                <div class="row g-0" style="display: block;" id="grennchannel">
+                    
+                 
                     <div class="container mt-3">
-                        <label for="green-input" class="custom-range-label" id='green-label'>
-                            <span  class="label"> Green Channel</span>
-                        </label>
-                        <div class="container mt-3">
-                            <label for="green-hue" class="custom-range-label" id='green-hue-label'>
-                                <span  class="label"> Hue</span>
-                                <span  class="value">0</span>
-                                
-                            </label>
-                            <input type="range" 
-                                min="0" 
-                                max="1" 
-                                value='0'
-                                step='0.1'
-                                class="custom-range-input" id="green-hue" name="points1" >
-                        </div>
                         <canvas id="histogram" width="400" height="0"></canvas>
-                        <div class="container mt-3">
-                            <div class="row">
-                                <div class="col">
-                                    <!-- <label for="green-hue-input" class="input-label"></label>  -->
-                                    <input type="number" min="0" max="130" value="0" step="1" class="input-field" id="green-input-1" name="InputSlider1">
-                                </div>
-                                <div class="col">
-                                    <!-- <label for="green-hue-display" class="input-label">Hue Display:</label> -->
-                                    <input type="number" min="0" max="255" value="255" step="1" class="input-field" id="green-input-2" name="InputSlider2">
-                                </div>
-                            </div>
-                        </div>
-                        
 
-                        <div class="container mt-3">
-                            <label for="green-saturation-1" class="custom-range-label" id='green-saturation-1-label'>
-                                <span  class="value">0</span>
-                                
-                            </label>
-                            <input type="range" 
-                                min="0" 
-                                max="130" 
-                                value='0'
-                                step='1'
-                                class="custom-range-input" id="green-saturation-1" name="points1" >
-
-                                <label for="green-saturation-2" class="custom-range-label" id='green-saturation-2-label'>
-                                    <span  class="value">255</span>
-                                </label>    
-                                <input type="range" 
-                                    min="130" 
-                                    max="255" 
-                                    value='255'
-                                    step='1'
-                                    class="custom-range-input" id="green-saturation-2" name="points1" >
                         </div>
-                        <button type="button" id='green-button' class="btn btn-outline-dark">
-                            <span  class="label"> Auto Adjust</span>
-                        </button>
-                    </div>
                     <div class="container mt-3">
-                        <canvas id="histogram_b" width="400" height="0"></canvas>
-                        <label for="blue-input" class="custom-range-label" id='blue-label'>
-                            <span  class="label"> Blue Channel</span>
-                        </label>
-                        <div class="container mt-3">
-                            <label for="blue-hue" class="custom-range-label" id='blue-hue-label'>
-                                <span  class="label"> Hue</span>
-                                <span  class="value">0</span>
-                                
-                            </label>
-                            <input type="range" 
-                                min="0" 
-                                max="1" 
-                                value='0'
-                                step='0.1'
-                                class="custom-range-input" id="blue-hue" name="points1" >
-                        </div>
-                        <div class="container mt-3">
-                            <div class="row">
-                                <div class="col">
-                                    <!-- <label for="green-hue-input" class="input-label"></label>  -->
-                                    <input type="number" min="0" max="130" value="0" step="1" class="input-field" id="blue-input-1" name="InputSlider1">
-                                </div>
-                                <div class="col">
-                                    <!-- <label for="green-hue-display" class="input-label">Hue Display:</label> -->
-                                    <input type="number" min="0" max="255" value="255" step="1" class="input-field" id="blue-input-2" name="InputSlider2">
-                                </div>
+                        <div class="row">
+                            <div class="col">
+                                <input type="number" min="0" max="130" value="0" step="1" class="input-field" id="green-input-1" name="inputField1">
+                               <input type="range" min="0" max="130" value="0" step="1" class="custom-range-input custom-range-input1" id="green-saturation-1" name="saturation1">
+
+                            </div>
+                            <div class="col">
+                                <label for="green-saturation-1" class="custom-range-label" id="green-saturation-1-label" style="display: none;">
+                                    <span class="value">0</span>
+                                    
+                                </label>
+                                <label for="green-saturation-2" class="custom-range-label" id="green-saturation-2-label" style="display: none;">
+                                    <span class="value">255</span>
+                                </label>
+                                <input type="number" min="0" max="255" value="255" step="1" class="input-field" id="green-input-2" name="inputField2">
+                                <input type="range" min="130" max="255" value="255" step="1" class="custom-range-input custom-range-input1" id="green-saturation-2" name="saturation2">
+
                             </div>
                         </div>
-                       
-                        <div class="container mt-3">
-                            <label for="blue-saturation-1" class="custom-range-label" id='blue-saturation-1-label'>
-                                <span  class="value">0</span>
-                                
-                            </label>
-                            <input type="range" 
-                                min="0" 
-                                max="130" 
-                                value='0'
-                                step='1'
-                                class="custom-range-input" id="blue-saturation-1" name="points1" >
-
-                                <label for="blue-saturation-2" class="custom-range-label" id='blue-saturation-2-label'>
-                                    <span  class="value">255</span>
-                                </label>    
-                                <input type="range" 
-                                    min="130" 
-                                    max="255" 
-                                    value='255'
-                                    step='1'
-                                    class="custom-range-input" id="blue-saturation-2" name="points1" >
+                        <div class="container">
+                            <button type="button"  id="green-button" class="btn btn-outline-dark"  >
+                                <span class="label">Auto Adjust</span>
+                            </button>
                         </div>
-                        <button type="button" id='blue-button' class="btn btn-outline-dark">
-                            <span  class="label"> Auto Adjust</span>
-                        </button>
                     </div>
+                
+                </div>
+                <div class="row g-0" style="display: none;" id="redchannel">
+                    
+                 
                     <div class="container mt-3">
                         <canvas id="histogram_r" width="400" height="0"></canvas>
-                        <label for="red-input" class="custom-range-label" id='red-label'>
-                            <span  class="label"> Red Channel</span>
-                        </label>
-                        <div class="container mt-3">
-                            <label for="red-hue" class="custom-range-label" id='red-hue-label'>
-                                <span  class="label"> Hue</span>
-                                <span  class="value">0</span>
-                                
-                            </label>
-                            <input type="range" 
-                                min="0" 
-                                max="1" 
-                                value='0'
-                                step='0.1'
-                                class="custom-range-input" id="red-hue" name="points1" >
+
                         </div>
-                        <div class="container mt-3">
-                            <div class="row">
-                                <div class="col">
-                                    <!-- <label for="green-hue-input" class="input-label"></label>  -->
-                                    <input type="number" min="0" max="130" value="0" step="1" class="input-field" id="red-input-1" name="InputSlider1">
-                                </div>
-                                <div class="col">
-                                    <!-- <label for="green-hue-display" class="input-label">Hue Display:</label> -->
-                                    <input type="number" min="0" max="255" value="255" step="1" class="input-field" id="red-input-2" name="InputSlider2">
-                                </div>
+                    <div class="container mt-3">
+                        <div class="row">
+                            <div class="col">
+                                <input type="number" min="0" max="130" value="0" step="1" class="input-field" id="red-input-1" name="inputField1">
+                               <input type="range" min="0" max="130" value="0" step="1" class="custom-range-input custom-range-input1" id="red-saturation-1" name="saturation1">
+
+                            </div>
+                            <div class="col">
+                                <label for="red-saturation-1" class="custom-range-label" id="red-saturation-1-label" style="display: none;">
+                                    <span class="value">0</span>
+                                    
+                                </label>
+                                <label for="red-saturation-2" class="custom-range-label" id="red-saturation-2-label" style="display: none;">
+                                    <span class="value">255</span>
+                                </label>
+                                <input type="number" min="0" max="255" value="255" step="1" class="input-field" id="red-input-2" name="inputField2">
+                                <input type="range" min="130" max="255" value="255" step="1" class="custom-range-input custom-range-input1" id="red-saturation-2" name="saturation2">
+
                             </div>
                         </div>
-                       
-                        <div class="container mt-3">
-                            <label for="red-saturation-1" class="custom-range-label" id='red-saturation-1-label'>
-                                <span  class="value">0</span>
-                                
-                            </label>
-                            <input type="range" 
-                                min="0" 
-                                max="130" 
-                                value='0'
-                                step='1'
-                                class="custom-range-input" id="red-saturation-1" name="points1" >
-
-                                <label for="red-saturation-2" class="custom-range-label" id='red-saturation-2-label'>
-                                    <span  class="value">255</span>
-                                </label>    
-                                <input type="range" 
-                                    min="130" 
-                                    max="255" 
-                                    value='255'
-                                    step='1'
-                                    class="custom-range-input" id="red-saturation-2" name="points1" >
-                        </div>
-                        
-                        <button type="button" id='red-button' class="btn btn-outline-dark">
-                            <span  class="label"> Auto Adjust</span>
+                    </div>
+                    <div class="container">
+                        <button type="button" id="red-button" class="btn btn-outline-dark"  >
+                            <span class="label">Auto Adjust</span>
                         </button>
                     </div>
-                </div>
-            </div>
                 
+                </div>
+                <div class="row g-0" style="display: none;" id="bluechannel">
+                    
+                 
+                    <div class="container mt-3">
+                        <canvas id="histogram_b" width="400" height="0"></canvas>
+
+                        </div>
+                    <div class="container mt-3">
+                        <div class="row">
+                            <div class="col">
+                                <input type="number" min="0" max="130" value="0" step="1" class="input-field" id="blue-input-1" name="inputField1">
+                               <input type="range" min="0" max="130" value="0" step="1" class="custom-range-input custom-range-input1" id="blue-saturation-1" name="saturation1">
+                               <label for="blue-saturation-1" class="custom-range-label" id="blue-saturation-1-label" style="display: none;">
+                                <span class="value">0</span>
+                                <label for="blue-saturation-2" class="custom-range-label" id="blue-saturation-2-label" style="display: none;">
+                                    <span class="value">255</span>
+                                </label>
+                            </label>
+                            </div>
+                            <div class="col">
+                                <input type="number" min="0" max="255" value="255" step="1" class="input-field" id="blue-input-2" name="inputField2">
+                                <input type="range" min="130" max="255" value="255" step="1" class="custom-range-input custom-range-input1" id="blue-saturation-2" name="saturation2">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container">
+                        <button type="button" id="blue-button" class="btn btn-outline-dark"  >
+                            <span class="label">Auto Adjust</span>
+                        </button>
+                    </div>
+                
+                </div>
+
+            </div>
         </div>
     </div>
+    
+    
 </div>
 <div class="card" >
     <div  class="card-header" 

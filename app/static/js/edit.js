@@ -40,9 +40,6 @@ const redInput = document.querySelector("#red-button");
 let greenChanged = false;
 let blueChanged = false;
 let redChanged = false;
-const greenLabel = document
-  .querySelector("#green-label")
-  .querySelector(".value");
 const greenhue = document.querySelector("#green-hue");
 const greenhueLabel = document
   .querySelector("#green-hue-label")
@@ -100,6 +97,7 @@ const ctx_r = document.getElementById("histogram_r").getContext("2d");
 const ctx_b = document.getElementById("histogram_b").getContext("2d");
 const labels = Array.from({ length: 256 }, (_, index) => index);
 console.log(labels);
+let chartgreen,chartblue,chartred
 
 $(document).click(function (event) {
   var $target = $(event.target);
@@ -111,22 +109,29 @@ $(document).click(function (event) {
 function closeButtonHandler(e) {
   const parent = e.target.parentNode.parentNode.parentNode.parentNode;
   parent.classList.remove("show");
+  
   cropper.destroy();
 }
 
 editCloseButtons.forEach((b) =>
+ 
   b.addEventListener("click", closeButtonHandler)
 );
 // now we add the the logic of up scale the image with ai 
 let upscalebtn=document.querySelector("#edit > button")
 console.log(upscalebtn);
-// end decleration
+// // end decleration
 document.querySelector("#headingFour > h5")
-
-//send original  image in the flask app
+document.querySelector("#headingFour").addEventListener('click',()=>{
+  show.classList.remove('show')
+})
+// //send original  image in the flask app
+const show=document.querySelector("#collapseTwo")
 path_of_the_original_image.addEventListener('load',async ()=>{
   let original_image_form_the_user=path_of_the_original_image.src
   response=original_image_form_the_user.split("base64,")[1]
+  show.classList.add('show')
+  
   axios
     .post(
       "/upload/originalimage",
@@ -147,6 +152,77 @@ path_of_the_original_image.addEventListener('load',async ()=>{
 
 
 
+path_of_the_original_image.addEventListener('load',()=>{
+  axios
+  .post(
+    "/createGraphs",
+    {
+      response,
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  )
+  .then((res) => {
+    console.log(res)
+    const graph = document.getElementById("histogram");
+    graph.height = 400;
+    chartgreen = new Chart(ctx_g, {
+      type: "bar",
+
+      data: {
+        // 0 to 255
+        labels: labels,
+        datasets: [
+          {
+            label: "Green Channel Histogram",
+            data: res.data.hist_g,
+            backgroundColor: "green",
+          },
+        ],
+    },
+  })
+  const graphRed = document.getElementById("histogram_r");
+  graphRed.height = 400;
+  chartred = new Chart(ctx_r, {
+    type: "bar",
+
+    data: {
+      // 0 to 255
+      labels: labels,
+      datasets: [
+        {
+          label: "Red Channel Histogram",
+          data: res.data.hist_r,
+          backgroundColor: "red",
+        },
+      ],
+    },
+  });
+  const graphblue = document.getElementById("histogram_b");
+  graphblue.height = 400;
+
+  chartblue = new Chart(ctx_b, {
+    type: "bar",
+    data: {
+      // 0 to 255
+      labels: labels,
+      datasets: [
+        {
+          label: "Blue Channel Histogram",
+          data: res.data.hist_b,
+          backgroundColor: "blue",
+        },
+      ],
+    },
+  });
+})
+  .catch((err) => console.error(err))
+
+  console.log(chartgreen);
+});
 
 /**OTHERS */
 brightnessInput.addEventListener("change", function (e) {
@@ -1659,15 +1735,9 @@ red_saturation_2.addEventListener("change", function (e) {
     })
     .catch((err) => console.error(err));
 });
-let chart;
 
+let flagOfSweatRangeGreen=false
 greenInput.addEventListener("click", async function (e) {
-
-  if (chart) {
-    chart.destroy();
-  }
-  let histg = [];
-  let Sweat_Range = [];
   loader.style.display = "block";
 
   let contrast = Number(contrastLabel.innerHTML);
@@ -1728,7 +1798,6 @@ greenInput.addEventListener("click", async function (e) {
       previewImage.setAttribute("src", "data:image/png;base64," + result);
       loader.style.display = "none";
       console.log(res.data);
-      histg = res.data.hist_g;
 
       Sweat_Range = res.data.Sweat_Range;
 
@@ -1740,50 +1809,34 @@ greenInput.addEventListener("click", async function (e) {
       green_saturation_2_input_number.value=res.data.entry_2b
     })
     .catch((err) => console.error(err));
-  const graph = document.getElementById("histogram");
-  graph.height = 400;
-  chart = new Chart(ctx_g, {
-    type: "bar",
-
-    data: {
-      // 0 to 255
-      labels: labels,
-      datasets: [
-        {
-          label: "Green Channel Histogram",
-          data: histg,
-          backgroundColor: "green",
-        },
-      ],
-    },
-  });
-  Sweat_Range.map((range, key) => {
-    chart.data.datasets.push({
-      type: "line",
-      label: `Sweet range`,
-      data: [
-        { x: range[key], y: 0 },
-        { x: range[key], y: 255 },
-      ],
-      borderColor: "blue",
-      borderWidth: 2,
-
-      fill: false,
-      xAxisID: "x",
-      yAxisID: "y",
-    });
-  });
-
-  chart.update();
+    if(!flagOfSweatRangeGreen){
+      Sweat_Range.map((range, key) => {
+        chartgreen.data.datasets.push({
+          type: "line",
+          label: `Sweet range`,
+          data: [
+            { x: range[key], y: 0 },
+            { x: range[key], y: 255 },
+          ],
+          borderColor: "blue",
+          borderWidth: 2,
+    
+          fill: false,
+          xAxisID: "x",
+          yAxisID: "y",
+        });
+      });
+    
+      chartgreen.update();
+      flagOfSweatRangeGreen=true
+    }
 });
-let chartblue;
+
+let flagOfSweatRangeBlue=false
+
 blueInput.addEventListener("click", async function (e) {
-  let histb = [];
   let Sweat_Range = [];
   loader.style.display = "block";
-  if (chartblue) {
-    chartblue.destroy();
-  }
   let contrast = Number(contrastLabel.innerHTML);
   let brightness = Number(brightnessLabel.innerHTML);
   let sharpness = Number(sharpnessLabel.innerHTML);
@@ -1842,7 +1895,6 @@ blueInput.addEventListener("click", async function (e) {
       let result = image.split("'")[1];
       previewImage.setAttribute("src", "data:image/png;base64," + result);
       loader.style.display = "none";
-      histb = res.data.hist_b;
       Sweat_Range = res.data.Sweat_Range;
       blue_saturation_1.value = res.data.entry_3a;
       blue_saturation_2.value = res.data.entry_3b;
@@ -1852,52 +1904,34 @@ blueInput.addEventListener("click", async function (e) {
       blue_saturation_2_input_number.value=res.data.entry_3b
     })
     .catch((err) => console.error(err));
+    if(!flagOfSweatRangeBlue){
 
-  console.log(histb);
-  const graph = document.getElementById("histogram_b");
-  graph.height = 400;
-
-  chartblue = new Chart(ctx_b, {
-    type: "bar",
-    data: {
-      // 0 to 255
-      labels: labels,
-      datasets: [
-        {
-          label: "Blue Channel Histogram",
-          data: histb,
-          backgroundColor: "blue",
-        },
-      ],
-    },
-  });
-  Sweat_Range.map((range, key) => {
-    chartblue.data.datasets.push({
-      type: "line",
-      label: "sweet range",
-      data: [
-        { x: range[key], y: 0 },
-        { x: range[key], y: 255 },
-      ],
-      borderColor: "blue",
-      borderWidth: 2,
-
-      fill: false,
-      xAxisID: "x",
-      yAxisID: "y",
-    });
-  });
-
-  chartblue.update();
+      Sweat_Range.map((range, key) => {
+        chartblue.data.datasets.push({
+          type: "line",
+          label: "sweet range",
+          data: [
+            { x: range[key], y: 0 },
+            { x: range[key], y: 255 },
+          ],
+          borderColor: "blue",
+          borderWidth: 2,
+    
+          fill: false,
+          xAxisID: "x",
+          yAxisID: "y",
+        });
+      });
+    
+      chartblue.update();
+      flagOfSweatRangeBlue=true
+    }
 });
-let chartred;
+
+let flagOfSweatRange=false
 redInput.addEventListener("click", async function (e) {
-  let histr = [];
   let Sweat_Range = [];
   loader.style.display = "block";
-  if(chartred){
-    chartred.destroy()
-  }
   let contrast = Number(contrastLabel.innerHTML);
   let brightness = Number(brightnessLabel.innerHTML);
   let sharpness = Number(sharpnessLabel.innerHTML);
@@ -1958,7 +1992,6 @@ redInput.addEventListener("click", async function (e) {
       let result = image.split("'")[1];
       previewImage.setAttribute("src", "data:image/png;base64," + result);
       loader.style.display = "none";
-      histr = res.data.hist_r;
       red_saturation_1.value = res.data.entry_1a;
       red_saturation_2.value = res.data.entry_1b;
       Sweat_Range = res.data.Sweat_Range;
@@ -1971,42 +2004,28 @@ redInput.addEventListener("click", async function (e) {
     .catch((err) => console.error(err));
 
   console.log(Sweat_Range);
-  console.log(histr);
-  const graph = document.getElementById("histogram_r");
-  graph.height = 400;
-   chartred= new Chart(ctx_r, {
-    type: "bar",
-    data: {
-      // 0 to 255
-      labels: labels,
-      datasets: [
-        {
-          label: "Red Channel Histogram",
-          data: histr,
-          backgroundColor: "red",
-        },
-      ],
-    },
-  });
-  Sweat_Range.map((range, key) => {
-    chartred.data.datasets.push({
-      type: "line",
-
-      label: "sweet range",
-      data: [
-        { x: range[key], y: 0 },
-        { x: range[key], y: 255 },
-      ],
-      borderColor: "blue",
-      borderWidth: 2,
-
-      fill: true,
-      xAxisID: "x",
-      yAxisID: "y",
+  if(!flagOfSweatRange){
+    Sweat_Range.map((range, key) => {
+      chartred.data.datasets.push({
+        type: "line",
+  
+        label: "sweet range",
+        data: [
+          { x: range[key], y: 0 },
+          { x: range[key], y: 255 },
+        ],
+        borderColor: "blue",
+        borderWidth: 2,
+  
+        fill: true,
+        xAxisID: "x",
+        yAxisID: "y",
+      });
     });
-  });
-
-  chartred.update();
+  
+    chartred.update();
+    flagOfSweatRange=true
+  }
 });
 upscalebtn.addEventListener('click',async function (e){
   loader.style.display = "block";
@@ -2049,4 +2068,57 @@ reset.addEventListener("click", function (params) {
   exposureInput.value = 1;
   exposureLabel.innerHTML = 1;
   previewImage.setAttribute("src", originImagebase64);
+});
+const grennchannelElement = document.querySelector("#grennchannel");
+const redchannelElement = document.querySelector("#redchannel");
+const bluechannelElement = document.querySelector("#bluechannel");
+const greenhueid=document.querySelector("#huegreenid")
+const bluehueid=document.querySelector("#hueblueid")
+const redhueid=document.querySelector("#hueredid")
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  console.log('inside');
+  // Add event listener to the dropdown
+  document.getElementById("channel-dropdown").addEventListener("change", function() {
+      var selectedChannel = this.value; // Get the selected channel
+      console.log(selectedChannel);
+      // Update labels based on the selected channel
+      switch (selectedChannel) {
+          case "green":
+              document.getElementById("hue-label").innerText = "Green Hue";
+              grennchannelElement.style.display = 'block'; 
+              redchannelElement.style.display = 'none'; 
+              bluechannelElement.style.display='none'
+              greenhueid.style.display='block'
+              bluehueid.style.display='none'
+              redhueid.style.display='none'
+              // Update other field labels accordingly
+              break;
+          case "blue":
+              document.getElementById("hue-label").innerText = "Blue Hue";
+              // Update other field labels accordingly
+              grennchannelElement.style.display = 'none'; 
+              redchannelElement.style.display = 'none'; 
+              bluechannelElement.style.display='block'
+              greenhueid.style.display='none'
+              bluehueid.style.display='block'
+              redhueid.style.display='none'
+              
+              break;
+          case "red":
+              document.getElementById("hue-label").innerText = "Red Hue";
+              // Update other field labels accordingly
+              grennchannelElement.style.display = 'none'; 
+              redchannelElement.style.display = 'block'; 
+              bluechannelElement.style.display='none'
+              greenhueid.style.display='none'
+              bluehueid.style.display='none'
+              redhueid.style.display='block'
+
+              break;
+          default:
+              break;
+      }
+  });
 });
