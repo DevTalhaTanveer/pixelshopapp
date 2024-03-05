@@ -26,7 +26,8 @@ facotrslider1blue=0
 factorslider2blue=0
 factorsliderred1=0
 factorssliderred2=0
-huered=0
+huered=0  
+
 sweat_ranges = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
 model_filename = "ESPCN_x4.pb"
 model_path = os.path.join(os.path.dirname(__file__), model_filename)
@@ -238,47 +239,50 @@ def createImageHistogram(image):
     hist_r = (hist_r / max(hist_r)) * 255
     hist_g = (hist_g / max(hist_g)) * 255
     hist_b = (hist_b / max(hist_b)) * 255
-
+    print(list(hist_r).index(255.0), list(hist_g).index(255.0), list(hist_b).index(255.0))
     return hist_r, hist_g, hist_b
 
 def autoAdjust(hist,ind ,t=True):
     global entry_1a, entry_1b, entry_2a, entry_2b, entry_3a, entry_3b
+    # print(entry_1a,entry_1b,entry_2a,entry_2b,entry_3a,entry_3b)
+    
     global slider_1a, slider_1b, slider_2a, slider_2b, slider_3a, slider_3b
     global sweat_ranges
     
     f = 0
     b = 0
-    
+
     if t:
         for i_ in range(2):
-            for i in range(f, len(hist) - 1):
-                if int(hist[i]) <= 2 or int(hist[i + 1]) <= 2:
+            for i in range(f,len(hist)):
+                if int(hist[i]) <= 2:
                     f += 1
                 else:
                     break
 
-            for i in range(len(hist) - 2 - b, 0, -1):
-                if int(hist[i]) <= 5 or int(hist[i + 1]) <= 5:
+            for i in range(len(hist) - 1- b, 0, -1):
+                if int(hist[i]) == 0:
                     b += 1
                 else:
                     break
+            b+=1
+            f+=1
 
-            b += 1
-            f += 1
-            
-
-    b = 255 - b
     print("f, b", f, b)
+    b = 255 - b
     
     if ind == 1:
         entry_1a = f
         entry_1b = b
+
     elif ind == 2:
         entry_2a = f
         entry_2b = b
+
     elif ind == 3:
         entry_3a = f
         entry_3b = b
+
 
     print("Entry",entry_1a, entry_1b)
 
@@ -396,121 +400,12 @@ def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_LANCZO
 
     return resized
 
-# def update_histograms(i,entry_1a,entry_1b,entry_2a,entry_2b,entry_3a,entry_3b,slider_1a,slider_1b,slider_2a,slider_2b,slider_3a,slider_3b):
-#     if entry_1a.get() == "" or entry_2a.get() == "" or entry_3a.get() == "" or entry_1b.get() == "" or entry_2b.get() == "" or entry_3b.get() == "":
-#         return
-#     print(i)
-#     # print(entry_1a.get(), entry_1b.get(), entry_2a.get(), entry_2b.get(), entry_3a.get(), entry_3b.get())
-
-#     try:
-#         # checkEntries()
-#         if i == "Green Channel":
-#             # slider_hue_g_2.place(relx=0.1, rely=0.15, relwidth=0.8, relheight=0.03)
-#             slider_2a.place(relx=0.08, rely=0.72, relheight=0.04, relwidth=0.42)
-#             slider_2b.place(relx=0.5, rely=0.72, relheight=0.04, relwidth=0.42)
-
-#             entry_2a.place(relx=0.2, rely=0.67, relheight=0.04, relwidth=0.2)
-#             entry_2b.place(relx=0.6, rely=0.67, relheight=0.04, relwidth=0.2)
-
-#             entry_1a.place_forget()
-#             entry_1b.place_forget()
-#             entry_3a.place_forget()
-#             entry_3b.place_forget()
-
-#             slider_1a.place_forget()
-#             slider_1b.place_forget()
-#             slider_3a.place_forget()
-#             slider_3b.place_forget()
-
-#             # Update the curve points based on slider values
-#             r_curve_points = np.array([[int(entry_2a.get()), 0], [int(entry_2b.get()), 255]], dtype=np.uint8)
-#             print(r_curve_points)
-#             ax1.clear()
-#             ax1.bar(range(256), hist_g, color='green', alpha=0.7, edgecolor="green")
-#             ax1.plot(r_curve_points[:, 0], r_curve_points[:, 1], 'k-', label='Curve')
-#             ax1.set_title('Green Channel')
-#             ax1.set_xlim([0, 256])
-#             ax1.set_ylim([0, 256])
-
-#             ax1.axvline(x=sweat_ranges[1][0].get(), label='axvline - full height', ymin=0, ymax=255)
-#             ax1.axvline(x=sweat_ranges[1][1].get(), label='axvline - full height', ymin=0, ymax=255)
-#             ax1.axvline(x=sweat_ranges[1][2].get(), label='axvline - full height', ymin=0, ymax=255)
-#             ax1.axvline(x=sweat_ranges[1][3].get(), label='axvline - full height', ymin=0, ymax=255)
-
-#         elif i == "Blue Channel":
-#             slider_hue_b_3.place(relx=0.1, rely=0.15, relwidth=0.8, relheight=0.03)
-#             slider_3a.place(relx=0.08, rely=0.72, relheight=0.04, relwidth=0.42)
-#             slider_3b.place(relx=0.5, rely=0.72, relheight=0.04, relwidth=0.42)
-
-#             entry_3a.place(relx=0.2, rely=0.67, relheight=0.04, relwidth=0.2)
-#             entry_3b.place(relx=0.6, rely=0.67, relheight=0.04, relwidth=0.2)
-
-#             entry_1a.place_forget()
-#             entry_1b.place_forget()
-#             entry_2a.place_forget()
-#             entry_2b.place_forget()
-
-#             slider_2a.place_forget()
-#             slider_2b.place_forget()
-#             slider_1a.place_forget()
-#             slider_1b.place_forget()
-
-#             # Update the curve points based on slider values
-#             r_curve_points = np.array([[entry_3a.get(), 0], [entry_3b.get(), 255]], dtype=np.uint8)
-#             ax1.clear()
-#             ax1.bar(range(256), hist_b, color='blue', alpha=0.7, edgecolor="blue")
-#             ax1.plot(r_curve_points[:, 0], r_curve_points[:, 1], 'k-', label='Curve')
-#             ax1.set_title('Blue Channel')
-#             ax1.set_xlim([0, 256])
-#             ax1.set_ylim([0, 256])
-
-#             ax1.axvline(x=sweat_ranges[2][0].get(), label='axvline - full height', ymin=0, ymax=255)
-#             ax1.axvline(x=sweat_ranges[2][1].get(), label='axvline - full height', ymin=0, ymax=255)
-#             ax1.axvline(x=sweat_ranges[2][2].get(), label='axvline - full height', ymin=0, ymax=255)
-#             ax1.axvline(x=sweat_ranges[2][3].get(), label='axvline - full height', ymin=0, ymax=255)
-
-#         elif i == "Red Channel" or i == None:
-#             slider_hue_r_1.place(relx=0.1, rely=0.15, relwidth=0.8, relheight=0.03)
-#             slider_1a.place(relx=0.08, rely=0.72, relheight=0.04, relwidth=0.42)
-#             slider_1b.place(relx=0.5, rely=0.72, relheight=0.04, relwidth=0.42)
-
-#             entry_1a.place(relx=0.2, rely=0.67, relheight=0.04, relwidth=0.2)
-#             entry_1b.place(relx=0.6, rely=0.67, relheight=0.04, relwidth=0.2)
-
-#             entry_2a.place_forget()
-#             entry_2b.place_forget()
-#             entry_3a.place_forget()
-#             entry_3b.place_forget()
-
-#             slider_2a.place_forget()
-#             slider_2b.place_forget()
-#             slider_3a.place_forget()
-#             slider_3b.place_forget()
-
-#             # Update the curve points based on slider values
-#             r_curve_points = np.array([[int(entry_1a.get()), 0], [int(entry_1b.get()), 255]], dtype=np.uint8)
-#             ax1.clear()
-#             ax1.bar(range(256), hist_r, color='red', alpha=0.7, edgecolor="red")
-#             ax1.plot(r_curve_points[:, 0], r_curve_points[:, 1], 'k-', label='Curve')
-#             ax1.set_title('Red Channel')
-#             ax1.set_xlim([0, 256])
-#             ax1.set_ylim([0, 256])
-
-#             ax1.axvline(x=sweat_ranges[0][0].get(), label='axvline - full height', ymin=0, ymax=255)
-#             ax1.axvline(x=sweat_ranges[0][1].get(), label='axvline - full height', ymin=0, ymax=255)
-#             ax1.axvline(x=sweat_ranges[0][2].get(), label='axvline - full height', ymin=0, ymax=255)
-#             ax1.axvline(x=sweat_ranges[0][3].get(), label='axvline - full height', ymin=0, ymax=255)
-
-#         ax1.grid(True, linestyle='--', linewidth=0.5)
-#         GraphSliderRunner(i)
-#     except:
-#         return
 
 
 
 def applyModel(I, idx = 0):
     """Apply the model to the image I"""
-    global edited_image, real_image, hist_r, hist_g, hist_b, width_img
+    global edited_image, hist_r, hist_g, hist_b, width_img
     global entry_1a, entry_1b, entry_2a, entry_2b, entry_3a, entry_3b
     global slider_1a, slider_1b, slider_2a, slider_2b, slider_3a, slider_3b
     global sweat_ranges 
@@ -534,30 +429,38 @@ def applyModel(I, idx = 0):
             adjust_r_curve = adjust_channel_curve(r,
                                                 np.array([[entry_1a, 0], [entry_1b, 255]], dtype=np.uint8))
             autoAdjust(hist_g,2,t=False)
+            print("Entry2",entry_2a, entry_2b) 
             adjust_g_curve = adjust_channel_curve(g,
                                                     np.array([[entry_2a, 0], [entry_2b, 255]], dtype=np.uint8))
             autoAdjust(hist_b,3,t=False)
+            print("Entry3",entry_3a, entry_3b) 
             adjust_b_curve = adjust_channel_curve(b,
                                                     np.array([[entry_3a, 0], [entry_3b, 255]], dtype=np.uint8))
 
         elif idx == 1:
             autoAdjust(hist_r,1,t=False)
+            print("Entry",entry_1a, entry_1b) 
             adjust_r_curve = adjust_channel_curve(r,
                                                 np.array([[entry_1a, 0], [entry_1b, 255]], dtype=np.uint8))
             autoAdjust(hist_g,2,t=True)
+            print("Entry2",entry_2a, entry_2b) 
             adjust_g_curve = adjust_channel_curve(g,
                                                     np.array([[entry_2a, 0], [entry_2b, 255]], dtype=np.uint8))
             autoAdjust(hist_b,3,t=False)
+            print("Entry3",entry_3a, entry_3b) 
             adjust_b_curve = adjust_channel_curve(b,
                                                     np.array([[entry_3a, 0], [entry_3b, 255]], dtype=np.uint8))
         elif idx == 2:
             autoAdjust(hist_r,1,t=False)
+            print("Entry",entry_1a, entry_1b) 
             adjust_r_curve = adjust_channel_curve(r,
                                                 np.array([[entry_1a, 0], [entry_1b, 255]], dtype=np.uint8))
             autoAdjust(hist_g,2,t=False)
+            print("Entry2",entry_2a, entry_2b) 
             adjust_g_curve = adjust_channel_curve(g,
                                                     np.array([[entry_2a, 0], [entry_2b, 255]], dtype=np.uint8))
             autoAdjust(hist_b,3,t=True)
+            print("Entry3",entry_3a, entry_3b) 
             adjust_b_curve = adjust_channel_curve(b,
                                                     np.array([[entry_3a, 0], [entry_3b, 255]], dtype=np.uint8))
         print("adjust_r_curve",adjust_r_curve)
@@ -574,7 +477,7 @@ def applyModel(I, idx = 0):
 
 @edit_route.route('/color/red', methods=['POST'])
 def adjust_green_channel():
-    global edited_image, real_image, hist_r, hist_g, hist_b, width_img,huered,hueblue,huefactor
+    global edited_image, hist_r, hist_g, hist_b, width_img,huered,hueblue,huefactor
     nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     
@@ -832,6 +735,7 @@ def slider2_green():
     nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     b, g, r = cv2.split(img)
+    
 
     adjust_r_curve = adjust_channel_curve(r,
                                             np.array([[0, 0], [255, 255]], dtype=np.uint8))
