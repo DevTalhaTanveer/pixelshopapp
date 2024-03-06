@@ -445,7 +445,7 @@ def applyautojustforallcolor():
     adjust_b_curve = adjust_channel_curve(b,np.array([[entry_3a, 0], [entry_3b, 255]], dtype=np.uint8))
     edited_image = np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
     merged_image = Image.fromarray(edited_image)
-    merged_image.save(buffered, format="PNG" ,quality=100)
+    merged_image.save(buffered, format="JPEG" )
     res = base64.b64encode(buffered.getvalue())
     return jsonify({"res": str(res),"entry_1a": entry_1a, "entry_1b": entry_1b,"entry_2a":entry_2a,"entry_2b":entry_2b,"entry_3a":entry_3a,"entry_3b":entry_3b,"red":redsweatranges,"green":greensweatranges,"blue":bluesweatranges })
 
