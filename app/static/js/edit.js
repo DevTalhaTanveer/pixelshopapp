@@ -359,6 +359,171 @@ contrastInput.addEventListener("change", function (e) {
     })
     .catch((err) => console.error(err));
 });
+// ####################### add logic of all correction ####################
+
+let flagOfSweatRangeGreen=false
+let flagOfSweatRangeBlue=false
+let flagOfSweatRange=false
+
+document.querySelector("#all").addEventListener('click',async(e)=>{
+  let Sweat_RangeR = [];
+  let Sweat_RangeG = [];
+  let Sweat_RangeB = [];
+  console.log('here');
+  loader.style.display = "block";
+  let contrast = Number(contrastLabel.innerHTML);
+  let brightness = Number(brightnessLabel.innerHTML);
+  let sharpness = Number(sharpnessLabel.innerHTML);
+  let saturation = Number(saturationLabel.innerHTML);
+  let exposure = Number(exposureLabel.innerHTML);
+  let red_hue = Number(redhueLabel.innerHTML);
+  let red_saturation_1 = Number(red_saturation_1_label.innerHTML);
+  let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
+  let blue_hue = Number(bluehueLabel.innerHTML);
+  let blue_saturation_1 = Number(blue_saturation_1_label.innerHTML);
+  let blue_saturation_2 = Number(blue_saturation_2_label.innerHTML);
+  let green_hue = Number(greenhueLabel.innerHTML);
+  let green_saturation_1 = Number(green_saturation_1_label.innerHTML);
+  let green_saturation_2 = Number(green_saturation_2_label.innerHTML);
+  let response = originImage;
+
+
+  if (!redChanged) {
+    redChanged = true;
+  }
+  if (!greenChanged) {
+    greenChanged = true;
+  }
+  if (
+    contrast > 1 ||
+    brightness > 1 ||
+    sharpness > 1 ||
+    saturation > 1 ||
+    exposure > 1 ||
+    green_hue > 0 ||
+    green_saturation_1 > 0 ||
+    green_saturation_2 < 255 ||
+    blue_hue > 0 ||
+    blue_saturation_1 > 0 ||
+    blue_saturation_2 < 255 ||
+    red_hue > 0 ||
+    contrast < 1 ||
+    brightness < 1 ||
+    sharpness < 1 ||
+    saturation < 1 ||
+    exposure < 1
+  ) {
+    console.log("here");
+    response = previewImage.src;
+    response = response.split("base64,")[1];
+  }
+
+  await axios
+    .post(
+      "/color/correction",
+      {
+        response,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((res) => {
+      console.log(res);
+      const image = res.data.res;
+      let result = image.split("'")[1];
+      previewImage.setAttribute("src", "data:image/png;base64," + result);
+      loader.style.display = "none";
+
+      // Sweat_Range = res.data.Sweat_Range;
+      Sweat_RangeB=res.data.blue;
+      Sweat_RangeG=res.data.green;
+      Sweat_RangeR=res.data.red
+      console.log(Sweat_RangeB,Sweat_RangeG,Sweat_RangeR);
+      red_saturation_1_label.innerHTML = res.data.entry_1a;
+      red_saturation_2_label.innerHTML = res.data.entry_1b;
+      red_saturation_1_input_number.value=res.data.entry_1a;
+      red_saturation_2_input_number.value=res.data.entry_1b
+      green_saturation_1_label.innerHTML = res.data.entry_2a;
+      green_saturation_2_label.innerHTML = res.data.entry_2b;
+      green_saturation_1_input_number.value=res.data.entry_2a
+      green_saturation_2_input_number.value=res.data.entry_2b
+      blue_saturation_1_label.innerHTML = res.data.entry_3a;
+      blue_saturation_2_label.innerHTML = res.data.entry_3b;
+      blue_saturation_1_input_number.value=res.data.entry_3a
+      blue_saturation_2_input_number.value=res.data.entry_3b
+    })
+    .catch((err) => console.error(err));
+
+    if(!flagOfSweatRangeGreen){
+      Sweat_RangeG.map((range, key) => {
+        chartgreen.data.datasets.push({
+          type: "line",
+          label: `Sweet range`,
+          data: [
+            { x: range[key], y: 0 },
+            { x: range[key], y: 255 },
+          ],
+          borderColor: "blue",
+          borderWidth: 2,
+    
+          fill: false,
+          xAxisID: "x",
+          yAxisID: "y",
+        });
+      });
+    
+      chartgreen.update();
+      flagOfSweatRangeGreen=true
+    }
+    if(!flagOfSweatRangeBlue){
+
+      Sweat_RangeB.map((range, key) => {
+        chartblue.data.datasets.push({
+          type: "line",
+          label: "sweet range",
+          data: [
+            { x: range[key], y: 0 },
+            { x: range[key], y: 255 },
+          ],
+          borderColor: "blue",
+          borderWidth: 2,
+    
+          fill: false,
+          xAxisID: "x",
+          yAxisID: "y",
+        });
+      });
+    
+      chartblue.update();
+      flagOfSweatRangeBlue=true
+    }
+    if(!flagOfSweatRange){
+      Sweat_RangeR.map((range, key) => {
+        chartred.data.datasets.push({
+          type: "line",
+    
+          label: "sweet range",
+          data: [
+            { x: range[key], y: 0 },
+            { x: range[key], y: 255 },
+          ],
+          borderColor: "blue",
+          borderWidth: 2,
+    
+          fill: true,
+          xAxisID: "x",
+          yAxisID: "y",
+        });
+      });
+    
+      chartred.update();
+      flagOfSweatRange=true
+    }
+});
+
 
 sharpnessInput.addEventListener("change", function (e) {
   loader.style.display = "block";
@@ -1736,179 +1901,279 @@ red_saturation_2.addEventListener("change", function (e) {
     .catch((err) => console.error(err));
 });
 
-let flagOfSweatRangeGreen=false
+
 greenInput.addEventListener("click", async function (e) {
-  loader.style.display = "block";
+    loader.style.display = "block";
+    let contrast = Number(contrastLabel.innerHTML);
+    let brightness = Number(brightnessLabel.innerHTML);
+    let sharpness = Number(sharpnessLabel.innerHTML);
+    let saturation = Number(saturationLabel.innerHTML);
+    let exposure = Number(exposureLabel.innerHTML);
+    let response = originImage;
+    let red_hue = Number(redhueLabel.innerHTML);
+    let red_saturation_1 = Number(red_saturation_1_label.innerHTML);
+    let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
+    let blue_hue = Number(bluehueLabel.innerHTML);
+    let blue_saturation_1 = Number(blue_saturation_1_label.innerHTML);
+    let blue_saturation_2 = Number(blue_saturation_2_label.innerHTML);
+    let green_hue = Number(greenhueLabel.innerHTML);
 
-  let contrast = Number(contrastLabel.innerHTML);
-  let brightness = Number(brightnessLabel.innerHTML);
-  let sharpness = Number(sharpnessLabel.innerHTML);
-  let saturation = Number(saturationLabel.innerHTML);
-  let exposure = Number(exposureLabel.innerHTML);
-  let response = originImage;
-  let red_hue = Number(redhueLabel.innerHTML);
-  let red_saturation_1 = Number(red_saturation_1_label.innerHTML);
-  let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
-  let blue_hue = Number(bluehueLabel.innerHTML);
-  let blue_saturation_1 = Number(blue_saturation_1_label.innerHTML);
-  let blue_saturation_2 = Number(blue_saturation_2_label.innerHTML);
-  let green_hue = Number(greenhueLabel.innerHTML);
-
-  if (!greenChanged) {
-    greenChanged = true;
-  }
-  if (
-    contrast > 1 ||
-    brightness > 1 ||
-    sharpness > 1 ||
-    saturation > 1 ||
-    exposure > 1 ||
-    red_hue > 0 ||
-    red_saturation_1 > 0 ||
-    red_saturation_2 < 255 ||
-    blue_hue > 0 ||
-    blue_saturation_1 > 0 ||
-    blue_saturation_2 < 255 ||
-    contrast < 1 ||
-    brightness < 1 ||
-    sharpness < 1 ||
-    saturation < 1 ||
-    exposure < 1 ||
-    green_hue > 0
-  ) {
-    response = previewImage.src;
-    response = response.split("base64,")[1];
-  }
-
-  await axios
-    .post(
-      "/color/green",
-      {
-        response,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    )
-    .then((res) => {
-      const image = res.data.res;
-      let result = image.split("'")[1];
-      previewImage.setAttribute("src", "data:image/png;base64," + result);
-      loader.style.display = "none";
-      console.log(res.data);
-
-      Sweat_Range = res.data.Sweat_Range;
-
-      green_saturation_1.value = res.data.entry_2a;
-      green_saturation_2.value = res.data.entry_2b;
-      green_saturation_1_label.innerHTML = res.data.entry_2a;
-      green_saturation_2_label.innerHTML = res.data.entry_2b;
-      green_saturation_1_input_number.value=res.data.entry_2a
-      green_saturation_2_input_number.value=res.data.entry_2b
-    })
-    .catch((err) => console.error(err));
-    if(!flagOfSweatRangeGreen){
-      Sweat_Range.map((range, key) => {
-        chartgreen.data.datasets.push({
-          type: "line",
-          label: `Sweet range`,
-          data: [
-            { x: range[key], y: 0 },
-            { x: range[key], y: 255 },
-          ],
-          borderColor: "blue",
-          borderWidth: 2,
-    
-          fill: false,
-          xAxisID: "x",
-          yAxisID: "y",
-        });
-      });
-    
-      chartgreen.update();
-      flagOfSweatRangeGreen=true
+    if (!greenChanged) {
+      greenChanged = true;
     }
-});
+    if (
+      contrast > 1 ||
+      brightness > 1 ||
+      sharpness > 1 ||
+      saturation > 1 ||
+      exposure > 1 ||
+      red_hue > 0 ||
+      red_saturation_1 > 0 ||
+      red_saturation_2 < 255 ||
+      blue_hue > 0 ||
+      blue_saturation_1 > 0 ||
+      blue_saturation_2 < 255 ||
+      contrast < 1 ||
+      brightness < 1 ||
+      sharpness < 1 ||
+      saturation < 1 ||
+      exposure < 1 ||
+      green_hue > 0
+    ) {
+      response = previewImage.src;
+      response = response.split("base64,")[1];
+    }
 
-let flagOfSweatRangeBlue=false
-
-blueInput.addEventListener("click", async function (e) {
-  let Sweat_Range = [];
-  loader.style.display = "block";
-  let contrast = Number(contrastLabel.innerHTML);
-  let brightness = Number(brightnessLabel.innerHTML);
-  let sharpness = Number(sharpnessLabel.innerHTML);
-  let saturation = Number(saturationLabel.innerHTML);
-  let exposure = Number(exposureLabel.innerHTML);
-  let green_hue = Number(greenhueLabel.innerHTML);
-  let green_saturation_1 = Number(green_saturation_1_label.innerHTML);
-  let green_saturation_2 = Number(green_saturation_2_label.innerHTML);
-  let red_hue = Number(redhueLabel.innerHTML);
-  let red_saturation_1 = Number(red_saturation_1_label.innerHTML);
-  let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
-  let blue_hue = Number(bluehueLabel.innerHTML);
-  let response = originImage;
-  
-  if (!blueChanged) {
-    blueChanged = true;
-  }
-
-  if (
-    contrast > 1 ||
-    brightness > 1 ||
-    sharpness > 1 ||
-    saturation > 1 ||
-    exposure > 1 ||
-    green_hue > 0 ||
-    green_saturation_1 > 0 ||
-    green_saturation_2 < 255 ||
-    red_hue > 0 ||
-    red_saturation_1 > 0 ||
-    red_saturation_2 < 255 ||
-    blue_hue > 0 ||
-    contrast < 1 ||
-    brightness < 1 ||
-    sharpness < 1 ||
-    saturation < 1 ||
-    exposure < 1
-  ) {
-    response = previewImage.src;
-    response = response.split("base64,")[1];
-  }
-
-  await axios
-    .post(
-      "/color/blue",
-      {
-        response,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
+    await axios
+      .post(
+        "/color/green",
+        {
+          response,
         },
-      }
-    )
-    .then((res) => {
-      const image = res.data.res;
-      let result = image.split("'")[1];
-      previewImage.setAttribute("src", "data:image/png;base64," + result);
-      loader.style.display = "none";
-      Sweat_Range = res.data.Sweat_Range;
-      blue_saturation_1.value = res.data.entry_3a;
-      blue_saturation_2.value = res.data.entry_3b;
-      blue_saturation_1_label.innerHTML = res.data.entry_3a;
-      blue_saturation_2_label.innerHTML = res.data.entry_3b;
-      blue_saturation_1_input_number.value=res.data.entry_3a
-      blue_saturation_2_input_number.value=res.data.entry_3b
-    })
-    .catch((err) => console.error(err));
-    if(!flagOfSweatRangeBlue){
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then((res) => {
+        const image = res.data.res;
+        let result = image.split("'")[1];
+        previewImage.setAttribute("src", "data:image/png;base64," + result);
+        loader.style.display = "none";
+        console.log(res.data);
 
+        Sweat_Range = res.data.Sweat_Range;
+
+        green_saturation_1.value = res.data.entry_2a;
+        green_saturation_2.value = res.data.entry_2b;
+        green_saturation_1_label.innerHTML = res.data.entry_2a;
+        green_saturation_2_label.innerHTML = res.data.entry_2b;
+        green_saturation_1_input_number.value=res.data.entry_2a
+        green_saturation_2_input_number.value=res.data.entry_2b
+      })
+      .catch((err) => console.error(err));
+      if(!flagOfSweatRangeGreen){
+        Sweat_Range.map((range, key) => {
+          chartgreen.data.datasets.push({
+            type: "line",
+            label: `Sweet range`,
+            data: [
+              { x: range[key], y: 0 },
+              { x: range[key], y: 255 },
+            ],
+            borderColor: "blue",
+            borderWidth: 2,
+      
+            fill: false,
+            xAxisID: "x",
+            yAxisID: "y",
+          });
+        });
+      
+        chartgreen.update();
+        flagOfSweatRangeGreen=true
+      }
+     
+  });
+
+  
+
+  blueInput.addEventListener("click", async function (e) {
+    let Sweat_Range = [];
+    loader.style.display = "block";
+    let contrast = Number(contrastLabel.innerHTML);
+    let brightness = Number(brightnessLabel.innerHTML);
+    let sharpness = Number(sharpnessLabel.innerHTML);
+    let saturation = Number(saturationLabel.innerHTML);
+    let exposure = Number(exposureLabel.innerHTML);
+    let green_hue = Number(greenhueLabel.innerHTML);
+    let green_saturation_1 = Number(green_saturation_1_label.innerHTML);
+    let green_saturation_2 = Number(green_saturation_2_label.innerHTML);
+    let red_hue = Number(redhueLabel.innerHTML);
+    let red_saturation_1 = Number(red_saturation_1_label.innerHTML);
+    let red_saturation_2 = Number(red_saturation_2_label.innerHTML);
+    let blue_hue = Number(bluehueLabel.innerHTML);
+    let response = originImage;
+    
+    if (!blueChanged) {
+      blueChanged = true;
+    }
+
+    if (
+      contrast > 1 ||
+      brightness > 1 ||
+      sharpness > 1 ||
+      saturation > 1 ||
+      exposure > 1 ||
+      green_hue > 0 ||
+      green_saturation_1 > 0 ||
+      green_saturation_2 < 255 ||
+      red_hue > 0 ||
+      red_saturation_1 > 0 ||
+      red_saturation_2 < 255 ||
+      blue_hue > 0 ||
+      contrast < 1 ||
+      brightness < 1 ||
+      sharpness < 1 ||
+      saturation < 1 ||
+      exposure < 1
+    ) {
+      response = previewImage.src;
+      response = response.split("base64,")[1];
+    }
+
+    await axios
+      .post(
+        "/color/blue",
+        {
+          response,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then((res) => {
+        const image = res.data.res;
+        let result = image.split("'")[1];
+        previewImage.setAttribute("src", "data:image/png;base64," + result);
+        loader.style.display = "none";
+        Sweat_Range = res.data.Sweat_Range;
+        blue_saturation_1.value = res.data.entry_3a;
+        blue_saturation_2.value = res.data.entry_3b;
+        blue_saturation_1_label.innerHTML = res.data.entry_3a;
+        blue_saturation_2_label.innerHTML = res.data.entry_3b;
+        blue_saturation_1_input_number.value=res.data.entry_3a
+        blue_saturation_2_input_number.value=res.data.entry_3b
+      })
+      .catch((err) => console.error(err));
+      if(!flagOfSweatRangeBlue){
+
+        Sweat_Range.map((range, key) => {
+          chartblue.data.datasets.push({
+            type: "line",
+            label: "sweet range",
+            data: [
+              { x: range[key], y: 0 },
+              { x: range[key], y: 255 },
+            ],
+            borderColor: "blue",
+            borderWidth: 2,
+      
+            fill: false,
+            xAxisID: "x",
+            yAxisID: "y",
+          });
+        });
+      
+        chartblue.update();
+        flagOfSweatRangeBlue=true
+      }
+  });
+
+
+  redInput.addEventListener("click", async function (e) {
+    let Sweat_Range = [];
+    loader.style.display = "block";
+    let contrast = Number(contrastLabel.innerHTML);
+    let brightness = Number(brightnessLabel.innerHTML);
+    let sharpness = Number(sharpnessLabel.innerHTML);
+    let saturation = Number(saturationLabel.innerHTML);
+    let exposure = Number(exposureLabel.innerHTML);
+    let green_hue = Number(greenhueLabel.innerHTML);
+    let green_saturation_1 = Number(green_saturation_1_label.innerHTML);
+    let green_saturation_2 = Number(green_saturation_2_label.innerHTML);
+    let red_hue = Number(redhueLabel.innerHTML);
+    let blue_hue = Number(bluehueLabel.innerHTML);
+    let blue_saturation_1 = Number(blue_saturation_1_label.innerHTML);
+    let blue_saturation_2 = Number(blue_saturation_2_label.innerHTML);
+    let response = originImage;
+
+    if (!redChanged) {
+      redChanged = true;
+    }
+
+    if (
+      contrast > 1 ||
+      brightness > 1 ||
+      sharpness > 1 ||
+      saturation > 1 ||
+      exposure > 1 ||
+      green_hue > 0 ||
+      green_saturation_1 > 0 ||
+      green_saturation_2 < 255 ||
+      blue_hue > 0 ||
+      blue_saturation_1 > 0 ||
+      blue_saturation_2 < 255 ||
+      red_hue > 0 ||
+      contrast < 1 ||
+      brightness < 1 ||
+      sharpness < 1 ||
+      saturation < 1 ||
+      exposure < 1
+    ) {
+      console.log("here");
+      response = previewImage.src;
+      response = response.split("base64,")[1];
+    }
+
+    await axios
+      .post(
+        "/color/red",
+        {
+          response,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then((res) => {
+        console.log(res);
+        const image = res.data.res;
+        let result = image.split("'")[1];
+        previewImage.setAttribute("src", "data:image/png;base64," + result);
+        loader.style.display = "none";
+        red_saturation_1.value = res.data.entry_1a;
+        red_saturation_2.value = res.data.entry_1b;
+        Sweat_Range = res.data.Sweat_Range;
+        red_saturation_1_label.innerHTML = res.data.entry_1a;
+        red_saturation_2_label.innerHTML = res.data.entry_1b;
+        red_saturation_1_input_number.value=res.data.entry_1a;
+        red_saturation_2_input_number.value=res.data.entry_1b
+        console.log(red_saturation_1);
+      })
+      .catch((err) => console.error(err));
+
+    console.log(Sweat_Range);
+    if(!flagOfSweatRange){
       Sweat_Range.map((range, key) => {
-        chartblue.data.datasets.push({
+        chartred.data.datasets.push({
           type: "line",
+    
           label: "sweet range",
           data: [
             { x: range[key], y: 0 },
@@ -1917,116 +2182,16 @@ blueInput.addEventListener("click", async function (e) {
           borderColor: "blue",
           borderWidth: 2,
     
-          fill: false,
+          fill: true,
           xAxisID: "x",
           yAxisID: "y",
         });
       });
     
-      chartblue.update();
-      flagOfSweatRangeBlue=true
+      chartred.update();
+      flagOfSweatRange=true
     }
-});
-
-let flagOfSweatRange=false
-redInput.addEventListener("click", async function (e) {
-  let Sweat_Range = [];
-  loader.style.display = "block";
-  let contrast = Number(contrastLabel.innerHTML);
-  let brightness = Number(brightnessLabel.innerHTML);
-  let sharpness = Number(sharpnessLabel.innerHTML);
-  let saturation = Number(saturationLabel.innerHTML);
-  let exposure = Number(exposureLabel.innerHTML);
-  let green_hue = Number(greenhueLabel.innerHTML);
-  let green_saturation_1 = Number(green_saturation_1_label.innerHTML);
-  let green_saturation_2 = Number(green_saturation_2_label.innerHTML);
-  let red_hue = Number(redhueLabel.innerHTML);
-  let blue_hue = Number(bluehueLabel.innerHTML);
-  let blue_saturation_1 = Number(blue_saturation_1_label.innerHTML);
-  let blue_saturation_2 = Number(blue_saturation_2_label.innerHTML);
-  let response = originImage;
-
-  if (!redChanged) {
-    redChanged = true;
-  }
-
-  if (
-    contrast > 1 ||
-    brightness > 1 ||
-    sharpness > 1 ||
-    saturation > 1 ||
-    exposure > 1 ||
-    green_hue > 0 ||
-    green_saturation_1 > 0 ||
-    green_saturation_2 < 255 ||
-    blue_hue > 0 ||
-    blue_saturation_1 > 0 ||
-    blue_saturation_2 < 255 ||
-    red_hue > 0 ||
-    contrast < 1 ||
-    brightness < 1 ||
-    sharpness < 1 ||
-    saturation < 1 ||
-    exposure < 1
-  ) {
-    console.log("here");
-    response = previewImage.src;
-    response = response.split("base64,")[1];
-  }
-
-  await axios
-    .post(
-      "/color/red",
-      {
-        response,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    )
-    .then((res) => {
-      console.log(res);
-      const image = res.data.res;
-      let result = image.split("'")[1];
-      previewImage.setAttribute("src", "data:image/png;base64," + result);
-      loader.style.display = "none";
-      red_saturation_1.value = res.data.entry_1a;
-      red_saturation_2.value = res.data.entry_1b;
-      Sweat_Range = res.data.Sweat_Range;
-      red_saturation_1_label.innerHTML = res.data.entry_1a;
-      red_saturation_2_label.innerHTML = res.data.entry_1b;
-      red_saturation_1_input_number.value=res.data.entry_1a;
-      red_saturation_2_input_number.value=res.data.entry_1b
-      console.log(red_saturation_1);
-    })
-    .catch((err) => console.error(err));
-
-  console.log(Sweat_Range);
-  if(!flagOfSweatRange){
-    Sweat_Range.map((range, key) => {
-      chartred.data.datasets.push({
-        type: "line",
-  
-        label: "sweet range",
-        data: [
-          { x: range[key], y: 0 },
-          { x: range[key], y: 255 },
-        ],
-        borderColor: "blue",
-        borderWidth: 2,
-  
-        fill: true,
-        xAxisID: "x",
-        yAxisID: "y",
-      });
-    });
-  
-    chartred.update();
-    flagOfSweatRange=true
-  }
-});
+  });
 upscalebtn.addEventListener('click',async function (e){
   loader.style.display = "block";
   response=previewImage.src;

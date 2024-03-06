@@ -400,6 +400,56 @@ def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_LANCZO
 
     return resized
 
+def calculate_sweat_ranges(f, b):
+    sweat_ranges = [[0]*4 for _ in range(4)]
+    
+    for i in range(4):
+        sweat_ranges[0][i] = f
+        sweat_ranges[1][i] = f + 20
+        sweat_ranges[2][i] = b
+        sweat_ranges[3][i] = b - 20
+
+    return sweat_ranges
+@edit_route.route('/color/correction', methods=['POST'])
+def applyautojustforallcolor():
+    global edited_image, hist_r, hist_g, hist_b, width_img,huered,hueblue,huefactor
+    global entry_1a, entry_1b, entry_2a, entry_2b, entry_3a, entry_3b
+    global adjust_r_curve, adjust_g_curve, adjust_b_curve
+    global sweat_ranges
+    nparr = np.frombuffer(base64.b64decode(real_image_user), np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    buffered = BytesIO()
+    h, w = img.shape[:2]
+    print(h, w)
+    width_img = w
+    if h >= w:
+         I = ResizeWithAspectRatio(img, height=1024)
+    else:
+        I = ResizeWithAspectRatio(img, width=1024)
+
+    hist_r, hist_g, hist_b = createImageHistogram(I)
+    b, g, r = cv2.split(I)
+    autoAdjust(hist_r,1,t=True)
+    print("Entry",entry_1a, entry_1b) 
+    redsweatranges=calculate_sweat_ranges(entry_1a,entry_1b)
+    print(redsweatranges)
+    adjust_r_curve = adjust_channel_curve(r,np.array([[entry_1a, 0], [entry_1b, 255]], dtype=np.uint8))
+    autoAdjust(hist_g,2,t=True)
+    print("Entry2",entry_2a, entry_2b) 
+    greensweatranges=calculate_sweat_ranges(entry_2a,entry_2b)
+    adjust_g_curve = adjust_channel_curve(g,np.array([[entry_2a, 0], [entry_2b, 255]], dtype=np.uint8))
+    autoAdjust(hist_b,3,t=True)
+    print("Entry3",entry_3a, entry_3b) 
+    bluesweatranges=calculate_sweat_ranges(entry_3a,entry_3b)
+    adjust_b_curve = adjust_channel_curve(b,np.array([[entry_3a, 0], [entry_3b, 255]], dtype=np.uint8))
+    edited_image = np.dstack((adjust_r_curve, adjust_g_curve, adjust_b_curve))
+    merged_image = Image.fromarray(edited_image)
+    merged_image.save(buffered, format="PNG" ,quality=100)
+    res = base64.b64encode(buffered.getvalue())
+    return jsonify({"res": str(res),"entry_1a": entry_1a, "entry_1b": entry_1b,"entry_2a":entry_2a,"entry_2b":entry_2b,"entry_3a":entry_3a,"entry_3b":entry_3b,"red":redsweatranges,"green":greensweatranges,"blue":bluesweatranges })
+
+
 
 
 
