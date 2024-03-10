@@ -254,20 +254,20 @@ def autoAdjust(hist,ind ,t=True):
 
     if t:
         for i_ in range(2):
-            for i in range(f,len(hist)):
-                if int(hist[i]) <= 2:
+            for i in range(f, len(hist) - 1):
+                if int(hist[i]) <= 2 or int(hist[i + 1]) <= 2:
                     f += 1
                 else:
                     break
 
-            for i in range(len(hist) - 1- b, 0, -1):
-                if int(hist[i]) == 0:
+            for i in range(len(hist) - 2 - b, 0, -1):
+                if int(hist[i]) <= 15 or int(hist[i + 1]) <= 15:
                     b += 1
                 else:
                     break
-            b+=1
-            f+=1
 
+            b += 1
+            f += 1
     print("f, b", f, b)
     b = 255 - b
     
